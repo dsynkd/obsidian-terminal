@@ -73,7 +73,6 @@ export namespace LocalSettings {
 
 export interface Settings extends PluginContext.Settings {
   readonly language: Settings.DefaultableLanguage;
-  readonly addToCommand: boolean;
   readonly addToContextMenu: boolean;
   readonly profiles: Settings.Profiles;
   readonly defaultProfile: Settings.DefaultProfile;
@@ -110,7 +109,6 @@ export namespace Settings {
   }
 
   export const DEFAULT: Persistent = deepFreeze({
-    addToCommand: true,
     addToContextMenu: true,
     createInstanceNearExistingOnes: true,
     errorNoticeTimeout: NOTICE_NO_TIMEOUT,
@@ -1145,7 +1143,6 @@ export namespace Settings {
 
     const fixed = {
       ...PluginContext.Settings.fix(self0).value,
-      addToCommand: fixTyped(DEFAULT, unc, "addToCommand", ["boolean"]),
       addToContextMenu: fixTyped(DEFAULT, unc, "addToContextMenu", ["boolean"]),
       createInstanceNearExistingOnes: fixTyped(
         DEFAULT,

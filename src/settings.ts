@@ -5,7 +5,6 @@ import {
   createChildElement,
   createDocumentFragment,
   linkSetting,
-  registerSettingsCommands,
   resetButton,
   setTextToEnum,
   DOMClasses,
@@ -35,7 +34,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       },
       ui,
     } = this;
-    this.newDescriptionWidget();
     this.newLanguageWidget(
       Settings.DEFAULTABLE_LANGUAGES,
       (language) =>
@@ -46,19 +44,13 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     );
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.documentation"))
-        .setDesc(i18n.t("settings.documentation-description"));
-    });
-    this.newAllSettingsWidget(Settings.DEFAULT, Settings.fix);
-    ui.newSetting(containerEl, (setting) => {
-      setting
-        .setName(i18n.t("settings.add-to-command"))
+        .setName(i18n.t("settings.add-to-context-menu"))
         .addToggle(
           linkSetting(
-            () => settings.value.addToCommand,
+            () => settings.value.addToContextMenu,
             async (value) =>
               settings.mutate((settingsM) => {
-                settingsM.addToCommand = value;
+                settingsM.addToContextMenu = value;
               }),
             () => {
               this.postMutate();
@@ -67,11 +59,11 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
         )
         .addExtraButton(
           resetButton(
-            i18n.t("asset:settings.add-to-command-icon"),
+            i18n.t("asset:settings.add-to-context-menu-icon"),
             i18n.t("settings.reset"),
             async () =>
               settings.mutate((settingsM) => {
-                settingsM.addToCommand = Settings.DEFAULT.addToCommand;
+                settingsM.addToContextMenu = Settings.DEFAULT.addToContextMenu;
               }),
             () => {
               this.postMutate();
@@ -79,36 +71,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     })
-      .newSetting(containerEl, (setting) => {
-        setting
-          .setName(i18n.t("settings.add-to-context-menu"))
-          .addToggle(
-            linkSetting(
-              () => settings.value.addToContextMenu,
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  settingsM.addToContextMenu = value;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          )
-          .addExtraButton(
-            resetButton(
-              i18n.t("asset:settings.add-to-context-menu-icon"),
-              i18n.t("settings.reset"),
-              async () =>
-                settings.mutate((settingsM) => {
-                  settingsM.addToContextMenu =
-                    Settings.DEFAULT.addToContextMenu;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
       .newSetting(containerEl, (setting) => {
         setting
           .setName(i18n.t("settings.profiles"))
@@ -642,5 +604,4 @@ export function loadSettings(
   docs: loadDocumentations.Loaded,
 ): void {
   context.addSettingTab(new SettingTab(context, docs));
-  registerSettingsCommands(context);
 }

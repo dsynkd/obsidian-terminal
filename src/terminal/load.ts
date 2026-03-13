@@ -165,9 +165,6 @@ export function loadTerminal(context: TerminalPlugin): void {
 
   addCommand(context, () => i18n.t("commands.toggle-terminal-visibility"), {
     checkCallback(checking) {
-      if (!settings.value.addToCommand) {
-        return false;
-      }
       const doc = context.app.workspace.containerEl.ownerDocument;
       const tabs = Array.from(
         doc.querySelectorAll<HTMLElement>(
@@ -239,9 +236,6 @@ export function loadTerminal(context: TerminalPlugin): void {
 
   addCommand(context, () => i18n.t("commands.open-terminal-default-profile"), {
     checkCallback(checking) {
-      if (!settings.value.addToCommand) {
-        return false;
-      }
       return openDefaultProfile(checking);
     },
     icon: i18n.t("asset:commands.open-terminal-default-icon"),
@@ -266,9 +260,6 @@ export function loadTerminal(context: TerminalPlugin): void {
           }),
         {
           checkCallback(checking) {
-            if (!settings.value.addToCommand) {
-              return false;
-            }
             return command(type, cwd)(checking);
           },
           icon: i18n.t(`asset:commands.open-terminal-${cwd}-icon`),
