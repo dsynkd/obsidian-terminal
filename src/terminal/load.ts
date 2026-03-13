@@ -8,32 +8,16 @@ import {
   Platform,
   addCommand,
   addRibbonIcon,
-  deepFreeze,
   notice2,
 } from "@polyipseity/obsidian-plugin-library";
 import { SelectProfileModal, spawnTerminal } from "./spawn.js";
-import { PROFILE_PROPERTIES } from "./profile-properties.js";
 import { Settings } from "../settings-data.js";
 import type { TerminalPlugin } from "../main.js";
 import { TerminalView } from "./view.js";
 
 export function loadTerminal(context: TerminalPlugin): void {
   TerminalView.load(context);
-  const PROFILE_TYPES = deepFreeze(
-      (
-        ["select", "integrated", "external"] satisfies readonly (
-          | keyof typeof PROFILE_PROPERTIES
-          | "select"
-        )[]
-      ).filter(
-        (type) => type === "select" || PROFILE_PROPERTIES[type].available,
-      ),
-    ),
-    CWD_TYPES = deepFreeze(["", "root", "current"]),
-    EXCLUDED_TYPES = deepFreeze([
-      { cwd: "", profile: "integrated" },
-      { cwd: "", profile: "external" },
-    ]),
+  const 
     {
       app: { vault, workspace },
       language: { value: i18n },
@@ -218,31 +202,4 @@ export function loadTerminal(context: TerminalPlugin): void {
     icon: i18n.t("asset:commands.open-terminal-default-icon"),
     id: "open-terminal.default",
   });
-
-  for (const type of PROFILE_TYPES) {
-    for (const cwd of CWD_TYPES) {
-      if (
-        EXCLUDED_TYPES.some(
-          ({ cwd: cwd0, profile }) => cwd0 === cwd && profile === type,
-        )
-      ) {
-        continue;
-      }
-      addCommand(
-        context,
-        () =>
-          i18n.t(`commands.open-terminal-${cwd}`, {
-            interpolation: { escapeValue: false },
-            type,
-          }),
-        {
-          checkCallback(checking) {
-            return command(type, cwd)(checking);
-          },
-          icon: i18n.t(`asset:commands.open-terminal-${cwd}-icon`),
-          id: `open-terminal.${type}.${cwd}`,
-        },
-      );
-    }
-  }
 }
