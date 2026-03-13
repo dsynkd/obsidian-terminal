@@ -52,40 +52,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     ui.newSetting(containerEl, (setting) => {
       setting
         .setName(i18n.t("settings.documentation"))
-        .addButton((button) =>
-          button
-            .setIcon(i18n.t("asset:settings.documentations.donate-icon"))
-            .setTooltip(i18n.t("settings.documentations.donate"))
-            .setCta()
-            .onClick(() => {
-              docs.open("donate");
-            }),
-        )
-        .addButton((button) =>
-          button
-            .setIcon(i18n.t("asset:settings.documentations.readme-icon"))
-            .setTooltip(i18n.t("settings.documentations.readme"))
-            .setCta()
-            .onClick(() => {
-              docs.open("readme");
-              closeSetting(containerEl);
-            }),
-        )
-        .addButton((button) => {
-          button
-            .setIcon(i18n.t("asset:settings.documentations.changelog-icon"))
-            .setTooltip(i18n.t("settings.documentations.changelog"))
-            .onClick(() => {
-              docs.open("changelog");
-              closeSetting(containerEl);
-            });
-          if (
-            version === null ||
-            semverLt(localSettings.value.lastReadChangelogVersion, version)
-          ) {
-            button.setCta();
-          }
-        });
+        .setDesc(i18n.t("settings.documentation-description"));
     });
     this.newAllSettingsWidget(Settings.DEFAULT, Settings.fix);
     ui.newSetting(containerEl, (setting) => {

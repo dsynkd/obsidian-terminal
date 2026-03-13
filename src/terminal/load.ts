@@ -216,23 +216,6 @@ export function loadTerminal(context: TerminalPlugin): void {
     id: "open-terminal.default",
   });
 
-  addCommand(context, () => i18n.t("commands.open-developer-console"), {
-    checkCallback(checking) {
-      if (!settings.value.addToCommand) {
-        return false;
-      }
-      if (!checking) {
-        const prof = defaultProfile("developerConsole");
-        if (prof) {
-          spawnTerminal(context, prof);
-        }
-      }
-      return true;
-    },
-    icon: i18n.t("asset:commands.open-developer-console-icon"),
-    id: "open-terminal.developerConsole",
-  });
-
   for (const type of PROFILE_TYPES) {
     for (const cwd of CWD_TYPES) {
       if (
