@@ -2,7 +2,6 @@ import {
   AdvancedSettingTab,
   Platform,
   cloneAsWritable,
-  closeSetting,
   createChildElement,
   createDocumentFragment,
   linkSetting,
@@ -15,7 +14,6 @@ import { ProfileListModal, TerminalOptionsModal } from "./modals.js";
 import { Settings } from "./settings-data.js";
 import type { TerminalPlugin } from "./main.js";
 import type { loadDocumentations } from "./documentations.js";
-import semverLt from "semver/functions/lt.js";
 import { cloneDeep, size } from "lodash-es";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
@@ -33,11 +31,8 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       context,
       context: {
         language: { value: i18n },
-        localSettings,
         settings,
-        version,
       },
-      docs,
       ui,
     } = this;
     this.newDescriptionWidget();

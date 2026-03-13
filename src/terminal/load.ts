@@ -162,6 +162,38 @@ export function loadTerminal(context: TerminalPlugin): void {
     () => i18n.t("ribbons.open-terminal"),
     () => openDefaultProfile(),
   );
+
+  addCommand(context, () => i18n.t("commands.toggle-terminal-visibility"), {
+    checkCallback(checking) {
+      if (!settings.value.addToCommand) {
+        return false;
+      }
+      const doc = context.app.workspace.containerEl.ownerDocument;
+      const tabs = Array.from(
+        doc.querySelectorAll<HTMLElement>(
+          '.workspace-tabs:has(.workspace-leaf-content[data-type*="terminal"])',
+        ),
+      );
+      if (tabs.length === 0) {
+        return false;
+      }
+      if (!checking) {
+        for (const tab of tabs) {
+          const hidden = tab.dataset.terminalHidden === "true";
+          if (hidden) {
+            tab.style.removeProperty("display");
+            delete tab.dataset.terminalHidden;
+          } else {
+            tab.style.display = "none";
+            tab.dataset.terminalHidden = "true";
+          }
+        }
+      }
+      return true;
+    },
+    icon: i18n.t("commands.toggle-terminal-visibility"),
+    id: "open-terminal.toggle-visibility",
+  });
   context.registerEvent(
     workspace.on("file-menu", (menu, file) => {
       if (!settings.value.addToContextMenu) {

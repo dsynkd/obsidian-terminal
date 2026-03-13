@@ -1,7 +1,6 @@
 import {
   DocumentationMarkdownView,
   StorageSettingsManager,
-  addCommand,
   anyToError,
   deepFreeze,
   printError,
@@ -116,22 +115,8 @@ export function loadDocumentations(
   context: TerminalPlugin,
   readme = false,
 ): loadDocumentations.Loaded {
-  const {
-      version,
-      language: { value: i18n },
-      localSettings,
-      settings,
-    } = context,
+  const { version, localSettings, settings } = context,
     ret = new Loaded0(context, DocumentationMarkdownView.register(context));
-  for (const doc of DOCUMENTATION_KEYS) {
-    addCommand(context, () => i18n.t(`commands.open-documentation-${doc}`), {
-      callback() {
-        ret.open(doc);
-      },
-      icon: i18n.t(`asset:commands.open-documentation-${doc}-icon`),
-      id: `open-documentation.${doc}`,
-    });
-  }
   if (readme) {
     ret.open("readme", false);
   }

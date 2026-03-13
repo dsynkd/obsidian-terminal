@@ -29,7 +29,6 @@ import {
   markFixed,
   newCollaborativeState,
   newHotkeyListener,
-  notice2,
   onResize,
   openExternal,
   printError,
@@ -886,33 +885,21 @@ export class TerminalView extends ItemView {
 
   protected startEmulator(focus: boolean): void {
     const {
-        contentEl,
-        context,
-        context: {
-          language: { onChangeLanguage, value: i18n },
-          settings,
-        },
-        leaf,
-        state: { profile, cwd, serial },
-        app: {
-          workspace: { requestSaveLayout },
-        },
-      } = this,
-      noticeSpawn = (): void => {
-        notice2(
-          () =>
-            i18n.t("notices.spawning-terminal", {
-              interpolation: { escapeValue: false },
-              name: this.name,
-            }),
-          settings.value.noticeTimeout,
-          context,
-        );
-      };
+      contentEl,
+      context,
+      context: {
+        language: { onChangeLanguage, value: i18n },
+        settings,
+      },
+      leaf,
+      state: { profile, cwd, serial },
+      app: {
+        workspace: { requestSaveLayout },
+      },
+    } = this;
     if (!PROFILE_PROPERTIES[profile.type].integratable) {
       (async (): Promise<void> => {
         try {
-          noticeSpawn();
           await openProfile(context, profile, { cwd: cwd ?? void 0 });
         } catch (error) {
           printError(
@@ -933,7 +920,6 @@ export class TerminalView extends ItemView {
       (async (): Promise<void> => {
         try {
           await awaitCSS(ele);
-          noticeSpawn();
           const [
               { CanvasAddon },
 
@@ -1078,17 +1064,6 @@ export class TerminalView extends ItemView {
                       ? DEFAULT_SUCCESS_EXIT_CODES
                       : profile.successExitCodes,
                   isSuccess = successCodes.includes(code.toString());
-                notice2(
-                  () =>
-                    i18n.t("notices.terminal-exited", {
-                      code,
-                      interpolation: { escapeValue: false },
-                    }),
-                  isSuccess
-                    ? settings.value.noticeTimeout
-                    : settings.value.errorNoticeTimeout,
-                  context,
-                );
                 if (isSuccess) {
                   leaf.detach();
                 }

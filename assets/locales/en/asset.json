@@ -13,6 +13,7 @@
     "open-terminal-default-icon": "$t(asset:generic.terminal-alt-icon)",
     "open-terminal-root-icon": "$t(asset:generic.terminal-icon)",
     "toggle-focus-on-last-terminal-icon": "$t(asset:generic.actions.focus-icon)",
+    "toggle-terminal-visibility-icon": "eye",
     "unfocus-terminal-icon": "$t(asset:generic.actions.unfocus-icon)"
   },
   "components": {
