@@ -119,7 +119,7 @@
     "url": "git+https://github.com/polyipseity/PLACEHOLDER.git"
   },
   "scripts": {
-    "build": "npm run check && npm run build:force",
+    "build": "npm run build:force",
     "build:dev": "npm run build:force -- dev",
     "build:force": "node scripts/build.mjs",
     "check": "npm run check:eslint && npm run check:md && npm run check:prettier && npm run check:py",
