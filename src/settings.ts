@@ -340,35 +340,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     this.newSectionWidget(() => i18n.t("settings.interface"));
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.open-changelog-on-update"))
-        .addToggle(
-          linkSetting(
-            () => settings.value.openChangelogOnUpdate,
-            async (value) =>
-              settings.mutate((settingsM) => {
-                settingsM.openChangelogOnUpdate = value;
-              }),
-            () => {
-              this.postMutate();
-            },
-          ),
-        )
-        .addExtraButton(
-          resetButton(
-            i18n.t("asset:settings.open-changelog-on-update-icon"),
-            i18n.t("settings.reset"),
-            async () =>
-              settings.mutate((settingsM) => {
-                settingsM.openChangelogOnUpdate =
-                  Settings.DEFAULT.openChangelogOnUpdate;
-              }),
-            () => {
-              this.postMutate();
-            },
-          ),
-        );
-    }).newSetting(containerEl, (setting) => {
-      setting
         .setName(i18n.t("settings.hide-status-bar"))
         .addDropdown(
           linkSetting(

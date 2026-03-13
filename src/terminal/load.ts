@@ -16,8 +16,9 @@ import type { TerminalPlugin } from "../main.js";
 import { TerminalView } from "./view.js";
 
 export function loadTerminal(context: TerminalPlugin): void {
+  const NOTICE_TIMEOUT = 5;
   TerminalView.load(context);
-  const 
+  const
     {
       app: { vault, workspace },
       language: { value: i18n },
@@ -36,7 +37,7 @@ export function loadTerminal(context: TerminalPlugin): void {
               interpolation: { escapeValue: false },
               type,
             }),
-          settings.value.errorNoticeTimeout,
+          NOTICE_TIMEOUT,
           context,
         );
       }
@@ -67,48 +68,7 @@ export function loadTerminal(context: TerminalPlugin): void {
             spawnTerminal(context, profile, { cwd: cwd0 });
           });
       };
-    },
-    command =
-      (
-        type: Settings.Profile.Type | "select",
-        cwd: (typeof CWD_TYPES)[number],
-      ) =>
-      (checking: boolean): boolean => {
-        const cwd0 = ((): string | null | undefined => {
-          if (!cwd) {
-            return void 0;
-          }
-          if (!adapter) {
-            return null;
-          }
-          switch (cwd) {
-            case "root":
-              return adapter.getBasePath();
-            case "current": {
-              const active = workspace.getActiveFile();
-              if (active?.parent) {
-                return adapter.getFullPath(active.parent.path);
-              }
-              return null;
-            }
-            // No default
-          }
-        })();
-        if (cwd0 === null) {
-          return false;
-        }
-        if (!checking) {
-          if (type === "select") {
-            new SelectProfileModal(context, cwd0).open();
-            return true;
-          }
-          const profile = defaultProfile(type);
-          if (profile) {
-            spawnTerminal(context, profile, { cwd: cwd0 });
-          }
-        }
-        return true;
-      };
+    };
 
   const openDefaultProfile = (checking?: boolean): boolean => {
     const { defaultProfile, profiles } = settings.value;

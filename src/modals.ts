@@ -601,7 +601,6 @@ export class ProfileModal extends Modal {
   protected setupTypedUI(ui: UpdatableUI, element: HTMLElement): void {
     const {
         context,
-        context: { settings },
         data,
       } = this,
       profile = data,
@@ -1092,7 +1091,7 @@ export class ProfileModal extends Modal {
                         );
                         notice2(
                           () => msgs.map((msg) => msg()).join("\n"),
-                          settings.value.noticeTimeout,
+                          5,
                           context,
                         );
                       } catch (error) {

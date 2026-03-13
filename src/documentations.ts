@@ -115,14 +115,13 @@ export function loadDocumentations(
   context: TerminalPlugin,
   readme = false,
 ): loadDocumentations.Loaded {
-  const { version, localSettings, settings } = context,
+  const { version, localSettings } = context,
     ret = new Loaded0(context, DocumentationMarkdownView.register(context));
   if (readme) {
     ret.open("readme", false);
   }
   if (
     version !== null &&
-    settings.value.openChangelogOnUpdate &&
     !StorageSettingsManager.hasFailed(localSettings.value) &&
     semverLt(localSettings.value.lastReadChangelogVersion, version)
   ) {

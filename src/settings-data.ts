@@ -1,7 +1,6 @@
 import {
   type AnyObject,
   type Fixed,
-  NOTICE_NO_TIMEOUT,
   NULL_SEM_VER_STRING,
   type Platform,
   PluginContext,
@@ -71,7 +70,8 @@ export namespace LocalSettings {
   }
 }
 
-export interface Settings extends PluginContext.Settings {
+export interface Settings
+  extends Omit<PluginContext.Settings, "noticeTimeout" | "errorNoticeTimeout"> {
   readonly language: Settings.DefaultableLanguage;
   readonly profiles: Settings.Profiles;
   readonly defaultProfile: Settings.DefaultProfile;
@@ -84,7 +84,6 @@ export interface Settings extends PluginContext.Settings {
   readonly focusOnNewInstance: boolean;
   readonly pinNewInstance: boolean;
 
-  readonly openChangelogOnUpdate: boolean;
   readonly hideStatusBar: Settings.HideStatusBarOption;
 
   readonly exposeInternalModules: boolean;
@@ -109,7 +108,6 @@ export namespace Settings {
 
   export const DEFAULT: Persistent = deepFreeze({
     createInstanceNearExistingOnes: true,
-    errorNoticeTimeout: NOTICE_NO_TIMEOUT,
     exposeInternalModules: true,
     focusOnNewInstance: true,
     hideStatusBar: "focused",
@@ -117,8 +115,6 @@ export namespace Settings {
     language: "",
     macOSOptionKeyPassthrough: true,
     newInstanceBehavior: "newHorizontalSplit",
-    noticeTimeout: 5,
-    openChangelogOnUpdate: true,
     pinNewInstance: true,
     preferredRenderer: "webgl",
     profiles: Object.fromEntries(
@@ -1139,17 +1135,18 @@ export namespace Settings {
       return cloneAsWritable(defaults2);
     })();
 
+    const base = PluginContext.Settings.fix(self0).value;
+    const { noticeTimeout, errorNoticeTimeout, ...baseRest } = base;
+    void noticeTimeout;
+    void errorNoticeTimeout;
     const fixed = {
-      ...PluginContext.Settings.fix(self0).value,
+      ...baseRest,
       createInstanceNearExistingOnes: fixTyped(
         DEFAULT,
         unc,
         "createInstanceNearExistingOnes",
         ["boolean"],
       ),
-      errorNoticeTimeout: fixTyped(DEFAULT, unc, "errorNoticeTimeout", [
-        "number",
-      ]),
       exposeInternalModules: fixTyped(DEFAULT, unc, "exposeInternalModules", [
         "boolean",
       ]),
@@ -1176,10 +1173,6 @@ export namespace Settings {
         "newInstanceBehavior",
         NEW_INSTANCE_BEHAVIORS,
       ),
-      noticeTimeout: fixTyped(DEFAULT, unc, "noticeTimeout", ["number"]),
-      openChangelogOnUpdate: fixTyped(DEFAULT, unc, "openChangelogOnUpdate", [
-        "boolean",
-      ]),
       pinNewInstance: fixTyped(DEFAULT, unc, "pinNewInstance", ["boolean"]),
       preferredRenderer: fixInSet(
         DEFAULT,
