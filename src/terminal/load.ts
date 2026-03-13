@@ -9,7 +9,6 @@ import {
   addCommand,
   addRibbonIcon,
   deepFreeze,
-  isNonNil,
   notice2,
 } from "@polyipseity/obsidian-plugin-library";
 import { SelectProfileModal, spawnTerminal } from "./spawn.js";
@@ -17,7 +16,6 @@ import { PROFILE_PROPERTIES } from "./profile-properties.js";
 import { Settings } from "../settings-data.js";
 import type { TerminalPlugin } from "../main.js";
 import { TerminalView } from "./view.js";
-import { isEmpty } from "lodash-es";
 
 export function loadTerminal(context: TerminalPlugin): void {
   TerminalView.load(context);
@@ -61,8 +59,7 @@ export function loadTerminal(context: TerminalPlugin): void {
       return ret;
     },
     adapter = vault.adapter instanceof FileSystemAdapter ? vault.adapter : null,
-    contextMenu = (
-      type: Settings.Profile.Type | "select",
+    openInIntegratedTerminalMenuItem = (
       cwd?: TFolder,
     ): ((item: MenuItem) => void) | null => {
       const cwd0 = cwd ? (adapter ? adapter.getFullPath(cwd.path) : null) : cwd;
@@ -71,24 +68,15 @@ export function loadTerminal(context: TerminalPlugin): void {
       }
       return (item: MenuItem) => {
         item
-          .setTitle(
-            i18n.t("menus.open-terminal", {
-              interpolation: { escapeValue: false },
-              type,
-            }),
-          )
+          .setTitle(i18n.t("menus.open-in-terminal"))
           .setIcon(
             i18n.t("asset:menus.open-terminal-icon", {
               interpolation: { escapeValue: false },
-              type,
+              type: "integrated",
             }),
           )
           .onClick(() => {
-            if (type === "select") {
-              new SelectProfileModal(context, cwd0).open();
-              return;
-            }
-            const profile = defaultProfile(type);
+            const profile = defaultProfile("integrated");
             if (!profile) {
               return;
             }
@@ -193,42 +181,31 @@ export function loadTerminal(context: TerminalPlugin): void {
   });
   context.registerEvent(
     workspace.on("file-menu", (menu, file) => {
-      if (!settings.value.addToContextMenu) {
-        return;
-      }
       const folder = file instanceof TFolder ? file : file.parent;
       if (!folder) {
         return;
       }
-      menu.addSeparator();
-      const items = PROFILE_TYPES.map((type) =>
-        contextMenu(type, folder),
-      ).filter(isNonNil);
-      if (!isEmpty(items)) {
-        menu.addSeparator();
-        items.forEach((item) => menu.addItem(item));
+      const item = openInIntegratedTerminalMenuItem(folder);
+      if (!item) {
+        return;
       }
+      menu.addSeparator();
+      menu.addItem(item);
     }),
   );
   context.registerEvent(
     workspace.on("editor-menu", (menu, _0, info) => {
       const { file } = info;
-      if (
-        !settings.value.addToContextMenu ||
-        info instanceof MarkdownView ||
-        !file?.parent
-      ) {
+      if (info instanceof MarkdownView || !file?.parent) {
         return;
       }
       const { parent } = file;
-      menu.addSeparator();
-      const items = PROFILE_TYPES.map((type) =>
-        contextMenu(type, parent),
-      ).filter(isNonNil);
-      if (!isEmpty(items)) {
-        menu.addSeparator();
-        items.forEach((item) => menu.addItem(item));
+      const item = openInIntegratedTerminalMenuItem(parent);
+      if (!item) {
+        return;
       }
+      menu.addSeparator();
+      menu.addItem(item);
     }),
   );
 

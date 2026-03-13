@@ -44,140 +44,108 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     );
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.add-to-context-menu"))
-        .addToggle(
-          linkSetting(
-            () => settings.value.addToContextMenu,
-            async (value) =>
-              settings.mutate((settingsM) => {
-                settingsM.addToContextMenu = value;
-              }),
-            () => {
-              this.postMutate();
-            },
-          ),
+        .setName(i18n.t("settings.profiles"))
+        .setDesc(
+          i18n.t("settings.profiles-description", {
+            count: size(settings.value.profiles),
+            interpolation: { escapeValue: false },
+          }),
+        )
+        .addButton((button) =>
+          button
+            .setIcon(i18n.t("asset:settings.profiles-edit-icon"))
+            .setTooltip(i18n.t("settings.profiles-edit"))
+            .onClick(() => {
+              new ProfileListModal(
+                context,
+                Object.entries(settings.value.profiles),
+                {
+                  callback: async (data): Promise<void> => {
+                    await settings.mutate((settingsM) => {
+                      settingsM.profiles = Object.fromEntries(data);
+                    });
+                    this.postMutate();
+                  },
+                  description: (): string =>
+                    i18n.t("settings.profile-list.description"),
+                },
+              ).open();
+            }),
         )
         .addExtraButton(
           resetButton(
-            i18n.t("asset:settings.add-to-context-menu-icon"),
+            i18n.t("asset:settings.profiles-icon"),
             i18n.t("settings.reset"),
             async () =>
               settings.mutate((settingsM) => {
-                settingsM.addToContextMenu = Settings.DEFAULT.addToContextMenu;
+                settingsM.profiles = cloneAsWritable(Settings.DEFAULT.profiles);
               }),
             () => {
               this.postMutate();
             },
           ),
         );
-    })
-      .newSetting(containerEl, (setting) => {
-        setting
-          .setName(i18n.t("settings.profiles"))
-          .setDesc(
-            i18n.t("settings.profiles-description", {
-              count: size(settings.value.profiles),
-              interpolation: { escapeValue: false },
-            }),
-          )
-          .addButton((button) =>
-            button
-              .setIcon(i18n.t("asset:settings.profiles-edit-icon"))
-              .setTooltip(i18n.t("settings.profiles-edit"))
-              .onClick(() => {
-                new ProfileListModal(
-                  context,
-                  Object.entries(settings.value.profiles),
-                  {
-                    callback: async (data): Promise<void> => {
-                      await settings.mutate((settingsM) => {
-                        settingsM.profiles = Object.fromEntries(data);
-                      });
-                      this.postMutate();
-                    },
-                    description: (): string =>
-                      i18n.t("settings.profile-list.description"),
-                  },
-                ).open();
+    }).newSetting(containerEl, (setting) => {
+      setting
+        .setName(i18n.t("settings.default-profile"))
+        .setDesc(i18n.t("settings.default-profile-description"))
+        .addDropdown(
+          linkSetting(
+            (): string => settings.value.defaultProfile ?? "",
+            async (value) =>
+              settings.mutate((settingsM) => {
+                // Unfortunately we have to use the empty string as a sentinel value for "no default profile" because the dropdown component doesn't allow null/undefined values. So we have to coerce it back to null here.
+                settingsM.defaultProfile =
+                  value === "" ? null : (value as Settings.DefaultProfile);
               }),
-          )
-          .addExtraButton(
-            resetButton(
-              i18n.t("asset:settings.profiles-icon"),
-              i18n.t("settings.reset"),
-              async () =>
-                settings.mutate((settingsM) => {
-                  settingsM.profiles = cloneAsWritable(
-                    Settings.DEFAULT.profiles,
-                  );
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
-      .newSetting(containerEl, (setting) => {
-        setting
-          .setName(i18n.t("settings.default-profile"))
-          .setDesc(i18n.t("settings.default-profile-description"))
-          .addDropdown(
-            linkSetting(
-              (): string => settings.value.defaultProfile ?? "",
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  // Unfortunately we have to use the empty string as a sentinel value for "no default profile" because the dropdown component doesn't allow null/undefined values. So we have to coerce it back to null here.
-                  settingsM.defaultProfile =
-                    value === "" ? null : (value as Settings.DefaultProfile);
-                }),
-              () => {
-                this.postMutate();
-              },
-              {
-                pre: (dropdown) => {
-                  dropdown
-                    .addOption("", i18n.t("components.dropdown.placeholder"))
-                    .addOptions(
-                      Object.fromEntries(
-                        Object.entries(settings.value.profiles).map(
-                          ([id, profile]) => [
-                            id,
-                            i18n.t(
-                              `settings.default-profile-name-${
-                                Settings.Profile.isCompatible(
-                                  profile,
-                                  Platform.CURRENT,
-                                )
-                                  ? ""
-                                  : "incompatible"
-                              }`,
-                              {
-                                info: Settings.Profile.info([id, profile]),
-                                interpolation: { escapeValue: false },
-                              },
-                            ),
-                          ],
-                        ),
+            () => {
+              this.postMutate();
+            },
+            {
+              pre: (dropdown) => {
+                dropdown
+                  .addOption("", i18n.t("components.dropdown.placeholder"))
+                  .addOptions(
+                    Object.fromEntries(
+                      Object.entries(settings.value.profiles).map(
+                        ([id, profile]) => [
+                          id,
+                          i18n.t(
+                            `settings.default-profile-name-${
+                              Settings.Profile.isCompatible(
+                                profile,
+                                Platform.CURRENT,
+                              )
+                                ? ""
+                                : "incompatible"
+                            }`,
+                            {
+                              info: Settings.Profile.info([id, profile]),
+                              interpolation: { escapeValue: false },
+                            },
+                          ),
+                        ],
                       ),
-                    );
-                },
+                    ),
+                  );
               },
-            ),
-          )
-          .addExtraButton(
-            resetButton(
-              i18n.t("asset:settings.default-profile-icon"),
-              i18n.t("settings.reset"),
-              async () =>
-                settings.mutate((settingsM) => {
-                  settingsM.defaultProfile = Settings.DEFAULT.defaultProfile;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      });
+            },
+          ),
+        )
+        .addExtraButton(
+          resetButton(
+            i18n.t("asset:settings.default-profile-icon"),
+            i18n.t("settings.reset"),
+            async () =>
+              settings.mutate((settingsM) => {
+                settingsM.defaultProfile = Settings.DEFAULT.defaultProfile;
+              }),
+            () => {
+              this.postMutate();
+            },
+          ),
+        );
+    });
 
     // profile defaults section
     this.newSectionWidget(() => i18n.t("settings.profile-defaults"));

@@ -231,6 +231,7 @@
     "working-directory": "working $t(generic.directory)"
   },
   "menus": {
+    "open-in-terminal": "$t(generic.open, capitalize) in $t(generic.terminal)",
     "open-terminal": "$t(generic.open, capitalize) in $t(generic.terminal): $t(generic.profile-types.{{type}}, capitalize)"
   },
   "name": "$t(generic.terminal, capitalize)",
