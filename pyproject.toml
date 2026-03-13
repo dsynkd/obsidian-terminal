@@ -29,9 +29,6 @@ repository = "https://github.com/polyipseity/obsidian-terminal.git"
 [dependency-groups]
 dev = [
   "hypothesis>=6.141.0",
-  "pytest>=8.4.0",
-  "pytest-cov>=7.0.0",
-  "pytest-xdist>=3.8.0",
   "ruff>=0.15.0",
 ]
 
@@ -57,21 +54,10 @@ strictSetInference = true
 [[tool.pyright.executionEnvironments]]
 extraPaths = ["src", "."]
 reportPrivateUsage = "none"
-root = "tests"
-
-[[tool.pyright.executionEnvironments]]
 root = "src"
 
 [[tool.pyright.executionEnvironments]]
 root = "."
-
-[tool.pytest.ini_options]
-addopts = ["--cov=./", "--cov-report=term-missing", "--dist=loadscope", "-n=auto", "--strict-markers"]
-testpaths = [
-  ".agents/skills/**/tests_*",
-  "tests",
-]
-python_files = "test_*.py"
 
 [tool.ruff]
 line-length = 88

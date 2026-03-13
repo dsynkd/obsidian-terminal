@@ -15,7 +15,7 @@ Integrate consoles, shells, and terminals inside [Obsidian].
 
 [![Buy Me a Coffee/embed]][Buy Me a Coffee]
 
-__[Repository] · [Changelog] · [Community plugin] · [Related] · [Features](#features) · [Installation](#installation) · [Usage](#usage) · [Contributing](#contributing) · [Security](#security)__
+**[Repository] · [Changelog] · [Community plugin] · [Related] · [Features](#features) · [Installation](#installation) · [Usage](#usage) · [Contributing](#contributing) · [Security](#security)**
 
 ![Trailer]
 
@@ -38,22 +38,22 @@ This file is automatically opened on first install. You can reopen it in setting
 ## Installation
 
 1. Install plugin.
-    - Community plugins
-        1. Install the [plugin][community plugin] from community plugins directly.
-    - Manual
-        1. Create directory `terminal` under `.obsidian/plugins` of your vault.
-        2. Place `manifest.json`, `main.js`, and `styles.css` from the [latest release] into the directory.
-    - Building (rolling)
-        1. Clone this repository, including its submodules.
-        2. Install `pnpm` (preferred) or `npm`. See <https://pnpm.io/installation> for pnpm.
-        3. Run `pnpm install` in the root directory (`npm install` is an acceptable fallback).
-        4. Run `pnpm obsidian:install <vault directory>` in the root directory (`npm run obsidian:install <vault directory>` is an acceptable fallback).
-    - [Obsidian42 - BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (rolling)
-        - See [their readme](https://github.com/TfTHacker/obsidian42-brat#readme).
+   - Community plugins
+     1. Install the [plugin][community plugin] from community plugins directly.
+   - Manual
+     1. Create directory `terminal` under `.obsidian/plugins` of your vault.
+     2. Place `manifest.json`, `main.js`, and `styles.css` from the [latest release] into the directory.
+   - Building (rolling)
+     1. Clone this repository, including its submodules.
+     2. Install `pnpm` (preferred) or `npm`. See <https://pnpm.io/installation> for pnpm.
+     3. Run `pnpm install` in the root directory (`npm install` is an acceptable fallback).
+     4. Run `pnpm obsidian:install <vault directory>` in the root directory (`npm run obsidian:install <vault directory>` is an acceptable fallback).
+   - [Obsidian42 - BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (rolling)
+     - See [their readme](https://github.com/TfTHacker/obsidian42-brat#readme).
 2. (optional for Windows, recommended) Install Python and dependencies.
-    1. Install [Python] 3.9 or above.
-    2. (Windows only) Run `pip3 install psutil==5.9.5 pywinctl==0.0.50 typing_extensions==4.7.1`. <!-- Update `README.md`, `dependabot.yml`, `magic.ts`, and `pyproject.toml` together. -->
-    3. Configure Python executable in profile settings. Press the "Check" button to validate the Python configuration. Each profile needs to be configured separately.
+   1. Install [Python] 3.9 or above.
+   2. (Windows only) Run `pip3 install psutil==5.9.5 pywinctl==0.0.50 typing_extensions==4.7.1`. <!-- Update `README.md`, `dependabot.yml`, `magic.ts`, and `pyproject.toml` together. -->
+   3. Configure Python executable in profile settings. Press the "Check" button to validate the Python configuration. Each profile needs to be configured separately.
 3. Enable plugin.
 4. (optional) Configure plugin settings.
 
@@ -61,19 +61,19 @@ This file is automatically opened on first install. You can reopen it in setting
 
 - To start a new external or integrated terminal
   - Ribbon
-      1. Click on the `Open terminal` ribbon.
-      2. Opens the default terminal if you have set up one. Otherwise, choose the desired profile.
+    1. Click on the `Open terminal` ribbon.
+    2. Opens the default terminal if you have set up one. Otherwise, choose the desired profile.
   - Context menu
-      1. Right-click on files, folders, or tab headers.
-      2. Choose the desired action \(and profile\).
+    1. Right-click on files, folders, or tab headers.
+    2. Choose the desired action \(and profile\).
   - Command palette
-      1. Press `Ctrl`+`P` or click on the `Open command palette` ribbon next to the left window border.
-      2. Choose the desired action \(and profile\).
+    1. Press `Ctrl`+`P` or click on the `Open command palette` ribbon next to the left window border.
+    2. Choose the desired action \(and profile\).
   - Select profile modal
-      1. Choose the desired profile. Press `Ctrl` to edit the profile before use. The item `(Temporary profile)` starts a terminal with a temporary profile.
+    1. Choose the desired profile. Press `Ctrl` to edit the profile before use. The item `(Temporary profile)` starts a terminal with a temporary profile.
 - To save and restore integrated terminal history
-    1. Keep the terminal open when exiting Obsidian.
-    2. Terminal history will be restored next time Obsidian is opened.
+  1. Keep the terminal open when exiting Obsidian.
+  2. Terminal history will be restored next time Obsidian is opened.
 - Additional actions
   - Includes
     - Clear terminal: \(1\), \(4\)
@@ -94,14 +94,12 @@ This file is automatically opened on first install. You can reopen it in setting
 
 The keyboard shortcuts can be customized in hotkeys settings.
 
-<!-- markdownlint-disable-next-line MD036 -->
-__Global__
+#### Global
 
 - Toggle focus on last terminal: `Ctrl`+`Shift`+`` ` ``
   - Focus on last terminal: \(unbound; useful if you want separate keys for focus and unfocus\)
 
-<!-- markdownlint-disable-next-line MD036 -->
-__Terminal is focused__
+#### Terminal is focused
 
 When a terminal is focused, other keyboard shortcuts \(including Obsidian and plugin hotkeys\) are disabled. Only the following keyboard shortcuts work. Thus you can ignore Obsidian complaining about conflicting keys for the following keyboard shortcuts.
 
@@ -129,8 +127,7 @@ When setting up a terminal profile, you need to distinguish between shells and t
 
 #### Examples
 
-<!-- markdownlint-disable-next-line MD036 -->
-__Shells__
+##### Shells
 
 - Bash: `bash --login`
 - Bourne shell: `sh`
@@ -142,8 +139,7 @@ __Shells__
 - Windows Subsystem for Linux: `wsl` or `wsl -d <distribution name>`
 - Z shell: `zsh --login`
 
-<!-- markdownlint-disable-next-line MD036 -->
-__Terminal emulators__
+##### Terminal emulators
 
 - Command Prompt: `cmd`
 - GNOME Terminal: `gnome-terminal`
@@ -184,53 +180,17 @@ This project uses [`changesets`](https://github.com/changesets/changesets) to ma
 This is an example change. ([GH#1](https://github.com/ghost/example/pull/1) by [@ghost](https://github.com/ghost))
 ```
 
-### Linting, Commit, and Hooks
+### Linting and Commit
 
 This project uses the following tools to ensure code and commit quality:
 
-- __ESLint__: Linting for TypeScript/JavaScript. Run with `pnpm run check` (lint only) or `pnpm run fix` (auto-fix lint issues).
-- __Prettier__: Code formatting. Run with `pnpm run format` (format all files) or `pnpm run format:check` (check formatting only).
-- __markdownlint__: Lints Markdown files. Run with `pnpm run markdownlint` or auto-fix with `pnpm run markdownlint:fix`.
-- __commitlint__: Enforces conventional commit messages. Used automatically on commit via Husky.
-- __husky__: Manages Git hooks. Pre-commit runs `lint-staged` and pre-push runs commitlint.
-- __lint-staged__: Runs linters on staged files. Markdown files are auto-fixed before commit.
-
-> __Lint-staged note:__ The lint-staged configuration (`.lintstagedrc.mjs`) invokes formatter/linter binaries directly (for example `prettier --write`, `eslint --cache --fix`, `markdownlint-cli2 --fix`) so that the list of staged files is passed through to the tool. Invoking these via `npm run` would prevent lint-staged from forwarding filenames and cause the tool to operate on its default glob (or the entire repo). Use `pnpm run format` to format the entire repository when needed.
-
-To set up locally:
-
-1. Run `pnpm install` to install dependencies and set up hooks.
-2. On commit, staged Markdown files will be linted and auto-fixed.
-3. Commit messages are checked for conventional format.
-
-You can manually run:
-
-- `pnpm run check` — lint all code (no formatting)
-- `pnpm run fix` — auto-fix lint issues (no formatting)
-- `pnpm run format` — format all code with Prettier
-- `pnpm run format:check` — check formatting with Prettier
-- `pnpm run markdownlint` — check all Markdown files
-- `pnpm run markdownlint:fix` — auto-fix Markdown files
-- `pnpm run commitlint` — check commit messages in range
-
-Configuration files:
-
-- `.eslintrc.*` or `eslint.config.mjs` — ESLint rules
-- `.prettierrc` — Prettier rules
-- `.prettierignore` — Prettier ignore patterns
-- `.markdownlint.jsonc` — markdownlint rules
-- `.commitlintrc.js` — commitlint config
-- `.husky/` — Git hooks
-
-### Testing
-
-This repository uses __Vitest__ for fast unit tests. Tests live under `tests/` and should be named `*.spec.ts` or `*.spec.js`.
-
-- Run locally (non-interactive, coverage): `pnpm test` or `npm run test` (runs `vitest run --coverage`).
-- Run locally (interactive / watch): `pnpm run test:watch` or `npm run test:watch`.
-- Git hooks: The pre-push hook runs `npm run test` (see `.husky/pre-push`) and will block pushes if tests fail; using `pnpm test` locally is equivalent.
-
-See `vitest.config.mts` for minimal config and further instructions.
+- **ESLint**: Linting for TypeScript/JavaScript. Run with `pnpm run check:eslint` or auto-fix with
+  `pnpm run format:eslint`.
+- **Prettier**: Code formatting. Run with `pnpm run check:prettier` or auto-fix with
+  `pnpm run format:prettier`.
+- **markdownlint**: Lints Markdown files. Run with `pnpm run check:md` or auto-fix with
+  `pnpm run format:md`.
+- **commitlint**: Enforces conventional commit messages (via `.husky/commit-msg`).
 
 ### Todos
 

@@ -73,60 +73,9 @@ Quick reference for scripts in `package.json`. **Always prefer `pnpm` over `npm`
 
 > CI tip: Use `pnpm install --frozen-lockfile` in CI for deterministic installs.
 
-## Testing ✅
+## Testing
 
-- **Test runner:** Vitest (fast, TypeScript support).
-- **Test file conventions and meaning:**
-  - `*.spec.{ts,js,mjs}` — **Unit tests (BDD-style)**: prefer a Behavior-Driven mindset; tests describe what the code should do, focus on small, isolated units, and should be fast and hermetic
-  - `*.test.{ts,js,mjs}` — **Integration tests (TDD-style)**: prefer a Test-Driven mindset for integration verification; tests exercise multiple units or real integrations (filesystem, build, etc.).
-
-  > Note: In JavaScript the extensions `*.spec` and `*.test` are tooling-equivalent; this project adopts the **semantic distinction** above to encourage appropriate test design (BDD for `spec`, TDD/integration for `test`).
-
-**Test path guidance:** When referencing package scripts from tests, prefer relative paths that resolve to the package-local `scripts/` directory (for example, `../../scripts/...` from `tests/scripts`) instead of using repository-root `scripts/` paths. This keeps tests package-scoped, hermetic, and easier to run in isolation.
-
-- **Config:** Minimal config is in `vitest.config.mts` and includes both `*.spec.*` and `*.test.*` globs; add inline comments to that file if you change test behavior or providers.
-
-### Vitest / `vi` best practices (tests) ✅
-
-- Prefer `vi.fn()` for spies and stubs instead of inline functions so tests can inspect calls and reset behavior easily.
-  - For async behavior, prefer `vi.fn().mockResolvedValue(x)` or `vi.fn().mockRejectedValue(err)` over `() => Promise.resolve()` / `() => Promise.reject()` to make intent explicit and improve readability.
-- Use `vi.doMock` / `vi.mock` with `vi.resetModules()` to isolate module-level mocks. When restoring spies/mocks between tests use `vi.restoreAllMocks()` (commonly in an `afterEach`).
-- Use `vi.spyOn()` to observe calls to global objects (console, process) rather than reassigning globals directly.
-- For timer-based tests, prefer `vi.useFakeTimers()` and `vi.runAllTimers()` / `vi.advanceTimersByTime()` to make assertions deterministic.
-- Prefer `vi.mocked(...)` for typed module mocks where available to access typed members and avoid `any` casts.
-
-These conventions improve test clarity, make failures easier to diagnose, and keep suites hermetic and parallelizable.
-
-Helpful local resources:
-
-- `tests/README.md` — Examples and recommended patterns for `vi` usage (async stubs, fake timers, spying globals).
-
-- **Run locally:**
-  - Full (default): `pnpm test` (prefer over `npm run test`) — runs both unit and integration tests with coverage.
-  - Unit-only (Vitest CLI): `pnpm exec vitest run "tests/**/*.spec.{js,ts,mjs}" --coverage` — fast, good for PR iteration.
-  - Integration-only (Vitest CLI): `pnpm exec vitest run "tests/**/*.test.{js,ts,mjs}" --coverage` — use for longer-running integration suites.
-  - Interactive / watch: `pnpm run test:watch` (prefer over `npm run test:watch`).
-
-  > **Agent note — vitest CLI:** `vitest` without a subcommand defaults to interactive/watch mode. **Agents must never run Vitest in watch mode**; always use `vitest run <options>` or add the `--run` option so tests execute non-interactively (example: `pnpm exec vitest --run "tests/**/*.spec.{js,ts,mjs}"`).
-
-- **Git hooks & CI:**
-  - Pre-push: `.husky/pre-push` runs `pnpm test` (prefer over `npm run test`) — failing tests will block pushes.
-  - CI: CI jobs run the full test suite (both unit and integration). If adding slow or flaky integration tests, mark them clearly (folder or filename) and justify in the PR description; prefer to keep the default suite fast.
-
-- **Guidelines for agents & contributors:**
-  - Unit tests must be deterministic and hermetic; mock external dependencies and avoid network I/O.
-  - Integration tests may use fixtures or local resources but must be isolated and documented.
-  - Keep tests small and focused — single assertion / behavior per test where reasonable.
-  - Test file structure: follow a **one test file per source file** convention. Place tests so they mirror the source directory structure under `tests/` for both unit (spec) tests and integration (test) suites. Name tests after the source file, e.g., `src/utils/foo.js` -> `tests/utils/foo.spec.js` (unit and integration). Only split a test across multiple files if a single test file would be unreasonably large; document the reason in the test file header.
-  - When changing test infra (adding coverage providers, changing runtimes, or altering hooks), update `AGENTS.md` with rationale and practical instructions so other agents can follow the new workflow.
-
-- **PR checklist (for agents):**
-  1. Add/modify tests to cover behavior changes and follow the **one test file per source file** convention.
-  2. Run `pnpm exec vitest run "tests/**/*.spec.{js,ts,mjs}"` locally for fast verification and `pnpm test` for the full suite.
-  3. Keep tests parallelizable and idempotent.
-  4. Document any infra changes in `AGENTS.md`.  
-
-If you need help designing a test or mocking a dependency, ask for a short example to be added to `tests/fixtures/`.
+This repository currently does not include an automated test suite.
 
 ## 3. Coding Conventions
 
@@ -137,7 +86,7 @@ If you need help designing a test or mocking a dependency, ask for a short examp
   - runtime type guards (e.g. `function isFoo(v: unknown): v is Foo`) and narrowing checks;
   - explicit generics / factory functions that preserve typing;
   - returning `unknown` from untrusted boundaries and narrowing at the call site.
-  If a single `as` cast is unavoidable add a comment explaining why, and add a unit test that exercises the runtime assumptions.
+    If a single `as` cast is unavoidable add a comment explaining why, and add a unit test that exercises the runtime assumptions.
 - **Make code type-checking friendly.** Prefer explicit types for exported APIs (return types and parameter types), keep public interfaces small and well-typed, prefer discriminated unions for runtime branching, and avoid deeply inferred/complex anonymous types at package boundaries. This makes `tsc` errors actionable and helps downstream consumers.
 - **Prefer `interface` for object shapes:** Prefer `interface Foo { ... }` rather than `type Foo = { ... }` for object-shaped declarations when possible. Interfaces are typically better for incremental TypeScript performance (caching and declaration merging) and work well with extension and declaration merging patterns.
 - When you need union, mapped, or conditional types, `type` aliases remain appropriate. Document non-trivial type-level logic with a brief comment so readers understand the intent and tradeoffs.

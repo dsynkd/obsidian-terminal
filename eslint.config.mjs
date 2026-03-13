@@ -37,7 +37,7 @@ export default defineConfig([
   },
   // Scripts run on Node.js — provide Node globals so `console` is defined
   {
-    files: ["scripts/**", "tests/scripts/**"],
+    files: ["scripts/**"],
     languageOptions: {
       globals: {
         ...globals.node,

@@ -136,10 +136,6 @@
     "obsidian:install": "npm run build && node scripts/obsidian-install.mjs",
     "obsidian:install:force": "npm run build:force && node scripts/obsidian-install.mjs",
     "prepare": "uv sync --all-extras --dev --active && husky",
-    "test": "npm run test:py && npm run test:vitest",
-    "test:py": "uv run --locked pytest",
-    "test:vitest": "vitest run --coverage",
-    "test:watch": "vitest",
     "version": "node scripts/version.mjs"
   },
   "sideEffects": false,
