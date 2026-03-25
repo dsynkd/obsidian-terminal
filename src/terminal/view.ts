@@ -35,7 +35,6 @@ import {
   printMalformedData,
   randomNotIn,
   readStateCollaboratively,
-  recordViewStateHistory,
   resetButton,
   saveFileAs,
   svelteState,
@@ -65,6 +64,7 @@ import { mount, unmount } from "svelte";
 import { BUNDLE } from "../import.js";
 import type { DeepWritable } from "ts-essentials";
 import type { LigaturesAddon } from "@xterm/addon-ligatures";
+import { around } from "monkey-around";
 import { ProfileModal } from "../modals.js";
 import type { SearchAddon } from "@xterm/addon-search";
 import { Settings } from "../settings-data.js";
@@ -603,7 +603,6 @@ export class TerminalView extends ItemView {
     value.focus = false;
     this.state = value;
     this.startEmulator(focus);
-    recordViewStateHistory(plugin, result);
   }
 
   public override getState(): unknown {
@@ -814,6 +813,22 @@ export class TerminalView extends ItemView {
     this.register(() => {
       this.emulator = null;
     });
+
+    // Redirect file opens away from this leaf so Obsidian never replaces the
+    // terminal with a MarkdownView (which crashes in saveHistory/onUnloadFile
+    // because the CodeMirror state lacks the history field during the transition).
+    this.register(
+      around(this.leaf, {
+        openFile(next) {
+          return function redirectOpenFile(
+            ...args: Parameters<typeof next>
+          ): ReturnType<typeof next> {
+            const newLeaf = app.workspace.getLeaf("tab");
+            return next.apply(newLeaf, args);
+          };
+        },
+      }),
+    );
   }
 
   protected startFind(): void {
