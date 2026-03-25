@@ -781,7 +781,6 @@ class WindowsPseudoterminal implements Pseudoterminal {
       {
         language: { value: i18n },
       } = context,
-      NOTICE_TIMEOUT = 5,
       resizerInitial = (async (): Promise<PipedChildProcess | null> => {
         if (isNil(pythonExecutable)) {
           return null;
@@ -812,7 +811,7 @@ class WindowsPseudoterminal implements Pseudoterminal {
                       code: code ?? signal,
                       interpolation: { escapeValue: false },
                     }),
-                  NOTICE_TIMEOUT,
+                  context?.settings.value.errorNoticeTimeout,
                   context,
                 );
               }

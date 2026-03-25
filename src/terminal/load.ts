@@ -16,7 +16,6 @@ import type { TerminalPlugin } from "../main.js";
 import { TerminalView } from "./view.js";
 
 export function loadTerminal(context: TerminalPlugin): void {
-  const NOTICE_TIMEOUT = 5;
   TerminalView.load(context);
   const
     {
@@ -37,7 +36,7 @@ export function loadTerminal(context: TerminalPlugin): void {
               interpolation: { escapeValue: false },
               type,
             }),
-          NOTICE_TIMEOUT,
+          context?.settings.value.errorNoticeTimeout,
           context,
         );
       }

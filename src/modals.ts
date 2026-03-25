@@ -1091,7 +1091,7 @@ export class ProfileModal extends Modal {
                         );
                         notice2(
                           () => msgs.map((msg) => msg()).join("\n"),
-                          5,
+                          context?.settings.value.errorNoticeTimeout,
                           context,
                         );
                       } catch (error) {

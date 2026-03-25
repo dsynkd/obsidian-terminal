@@ -71,7 +71,7 @@ export namespace LocalSettings {
 }
 
 export interface Settings
-  extends Omit<PluginContext.Settings, "noticeTimeout" | "errorNoticeTimeout"> {
+  extends Omit<PluginContext.Settings, "noticeTimeout"> {
   readonly language: Settings.DefaultableLanguage;
   readonly profiles: Settings.Profiles;
   readonly defaultProfile: Settings.DefaultProfile;
@@ -107,6 +107,7 @@ export namespace Settings {
   }
 
   export const DEFAULT: Persistent = deepFreeze({
+    errorNoticeTimeout: 0,
     createInstanceNearExistingOnes: true,
     exposeInternalModules: true,
     focusOnNewInstance: true,
@@ -1136,11 +1137,16 @@ export namespace Settings {
     })();
 
     const base = PluginContext.Settings.fix(self0).value;
-    const { noticeTimeout, errorNoticeTimeout, ...baseRest } = base;
+    const { noticeTimeout, ...baseRest } = base;
     void noticeTimeout;
-    void errorNoticeTimeout;
     const fixed = {
       ...baseRest,
+      errorNoticeTimeout: fixTyped(
+        DEFAULT,
+        unc,
+        "errorNoticeTimeout",
+        ["number"],
+      ),
       createInstanceNearExistingOnes: fixTyped(
         DEFAULT,
         unc,

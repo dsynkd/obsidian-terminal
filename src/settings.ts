@@ -380,7 +380,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     });
-    this.newNoticeTimeoutWidget(Settings.DEFAULT);
     this.newSectionWidget(() => i18n.t("settings.advanced"));
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
