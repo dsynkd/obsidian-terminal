@@ -10,9 +10,11 @@
     "open-documentation-readme": "$t(generic.documentations.readme) $t(generic.open)",
     "open-terminal-": "$t(generic.terminal) $t(generic.open): $t(generic.profile-types.{{type}})",
     "open-terminal-current": "$t(generic.current-directory)에서 $t(generic.terminal) $t(generic.open): $t(generic.profile-types.{{type}})",
+    "open-terminal-current-folder": "Open terminal in current folder",
     "open-terminal-default-profile": "$t(generic.open, capitalize) $t(generic.terminal): $t(settings.default-profile)",
     "open-terminal-root": "$t(generic.root-directory)에서 $t(generic.terminal) $t(generic.open): $t(generic.profile-types.{{type}})",
     "toggle-focus-on-last-terminal": "마지막 $t(generic.terminal)의 $t(generic.focus) $t(generic.toggle)",
+    "toggle-terminal-visibility": "Toggle terminal visibility",
     "unfocus-terminal": "$t(generic.terminal) $t(generic.unfocus)"
   },
   "components": {
@@ -230,6 +232,7 @@
     "working-directory": "작업 $t(generic.directory)"
   },
   "menus": {
+    "open-in-terminal": "$t(generic.open, capitalize) in $t(generic.terminal)",
     "open-terminal": "$t(generic.terminal)에서 $t(generic.open): $t(generic.profile-types.{{type}})"
   },
   "name": "$t(generic.terminal)",

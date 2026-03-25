@@ -10,9 +10,11 @@
     "open-documentation-readme": "$t(generic.documentations.readme)を$t(generic.open)",
     "open-terminal-": "$t(generic.terminal)を開く: $t(generic.profile-types.{{type}})",
     "open-terminal-current": "$t(generic.terminal)で$t(generic.current-directory)を開く: $t(generic.profile-types.{{type}})",
+    "open-terminal-current-folder": "Open terminal in current folder",
     "open-terminal-default-profile": "$t(generic.open, capitalize) $t(generic.terminal): $t(settings.default-profile)",
     "open-terminal-root": "$t(generic.terminal)で$t(generic.root-directory)を開く: $t(generic.profile-types.{{type}})",
     "toggle-focus-on-last-terminal": "最後の$t(generic.terminal)への$t(generic.focus)を$t(generic.toggle)",
+    "toggle-terminal-visibility": "Toggle terminal visibility",
     "unfocus-terminal": "$t(generic.terminal)の$t(generic.unfocus)"
   },
   "components": {
@@ -230,6 +232,7 @@
     "working-directory": "作業$t(generic.directory)"
   },
   "menus": {
+    "open-in-terminal": "$t(generic.open, capitalize) in $t(generic.terminal)",
     "open-terminal": "$t(generic.terminal)で開く: $t(generic.profile-types.{{type}})"
   },
   "name": "$t(generic.terminal)",

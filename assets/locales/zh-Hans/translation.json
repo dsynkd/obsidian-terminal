@@ -10,9 +10,11 @@
     "open-documentation-readme": "$t(generic.open)$t(generic.documentations.readme)",
     "open-terminal-": "$t(generic.open)$t(generic.terminal)：$t(generic.profile-types.{{type}})",
     "open-terminal-current": "在$t(generic.terminal)$t(generic.open)$t(generic.current-directory)：$t(generic.profile-types.{{type}})",
+    "open-terminal-current-folder": "Open terminal in current folder",
     "open-terminal-default-profile": "$t(generic.open)$t(generic.terminal)：$t(settings.default-profile)",
     "open-terminal-root": "在$t(generic.terminal)$t(generic.open)$t(generic.root-directory)：$t(generic.profile-types.{{type}})",
     "toggle-focus-on-last-terminal": "$t(generic.toggle)$t(generic.focus)于上一个$t(generic.terminal)",
+    "toggle-terminal-visibility": "Toggle terminal visibility",
     "unfocus-terminal": "$t(generic.unfocus)$t(generic.terminal)"
   },
   "components": {
@@ -214,6 +216,7 @@
     "working-directory": "工作$t(generic.directory)"
   },
   "menus": {
+    "open-in-terminal": "$t(generic.open, capitalize) in $t(generic.terminal)",
     "open-terminal": "在$t(generic.terminal)$t(generic.open)：$t(generic.profile-types.{{type}})"
   },
   "name": "$t(generic.terminal)",

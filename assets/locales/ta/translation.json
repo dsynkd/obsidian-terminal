@@ -10,9 +10,11 @@
     "open-documentation-readme": "$t(generic.open, capitalize) $t(generic.documentations.readme)",
     "open-terminal-": "$t(generic.open, capitalize) $t(generic.terminal): $t(generic.profile-types.{{type}}, capitalize)",
     "open-terminal-current": "$t(generic.open, capitalize) $t(generic.current-directory) in $t(generic.terminal): $t(generic.profile-types.{{type}}, capitalize)",
+    "open-terminal-current-folder": "Open terminal in current folder",
     "open-terminal-default-profile": "$t(generic.open, capitalize) $t(generic.terminal): $t(settings.default-profile)",
     "open-terminal-root": "$t(generic.open, capitalize) $t(generic.root-directory) in $t(generic.terminal): $t(generic.profile-types.{{type}}, capitalize)",
     "toggle-focus-on-last-terminal": "$t(generic.toggle, capitalize) $t(generic.focus) on last $t(generic.terminal)",
+    "toggle-terminal-visibility": "Toggle terminal visibility",
     "unfocus-terminal": "$t(generic.unfocus, capitalize) $t(generic.terminal)"
   },
   "components": {
@@ -230,6 +232,7 @@
     "working-directory": "working $t(generic.directory)"
   },
   "menus": {
+    "open-in-terminal": "$t(generic.open, capitalize) in $t(generic.terminal)",
     "open-terminal": "$t(generic.open, capitalize) in $t(generic.terminal): $t(generic.profile-types.{{type}}, capitalize)"
   },
   "name": "$t(generic.terminal, capitalize)",

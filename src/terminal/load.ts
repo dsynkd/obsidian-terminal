@@ -86,6 +86,32 @@ export function loadTerminal(context: TerminalPlugin): void {
     return true;
   };
 
+  const openDefaultProfileInActiveFileFolder = (checking?: boolean): boolean => {
+    if (!adapter) {
+      return false;
+    }
+    const activeFile = workspace.getActiveFile();
+    const folder = activeFile?.parent;
+    if (!activeFile || !folder) {
+      return false;
+    }
+    const cwdPath = adapter.getFullPath(folder.path);
+    const { defaultProfile, profiles } = settings.value;
+    if (defaultProfile && profiles[defaultProfile]) {
+      const profile = profiles[defaultProfile];
+      if (Settings.Profile.isCompatible(profile, Platform.CURRENT)) {
+        if (!checking) {
+          spawnTerminal(context, profile, { cwd: cwdPath });
+        }
+        return true;
+      }
+    }
+    if (!checking) {
+      new SelectProfileModal(context, cwdPath).open();
+    }
+    return true;
+  };
+
   addRibbonIcon(
     context,
     i18n.t("asset:ribbons.open-terminal-id"),
@@ -161,4 +187,16 @@ export function loadTerminal(context: TerminalPlugin): void {
     icon: i18n.t("asset:commands.open-terminal-default-icon"),
     id: "open-terminal.default",
   });
+
+  addCommand(
+    context,
+    () => i18n.t("commands.open-terminal-current-folder"),
+    {
+      checkCallback(checking) {
+        return openDefaultProfileInActiveFileFolder(checking);
+      },
+      icon: i18n.t("asset:commands.open-terminal-default-icon"),
+      id: "open-terminal.current-folder",
+    },
+  );
 }
