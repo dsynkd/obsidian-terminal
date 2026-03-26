@@ -86,6 +86,7 @@ export interface Settings
   readonly pinNewInstance: boolean;
 
   readonly hideStatusBar: Settings.HideStatusBarOption;
+  readonly addContextMenu: boolean;
 
   readonly exposeInternalModules: boolean;
   readonly interceptLogging: boolean;
@@ -113,6 +114,7 @@ export namespace Settings {
     exposeInternalModules: true,
     focusOnNewInstance: true,
     hideStatusBar: "focused",
+    addContextMenu: true,
     interceptLogging: true,
     language: "",
     macOSOptionKeyPassthrough: true,
@@ -1180,6 +1182,7 @@ export namespace Settings {
         "hideStatusBar",
         HIDE_STATUS_BAR_OPTIONS,
       ),
+      addContextMenu: fixTyped(DEFAULT, unc, "addContextMenu", ["boolean"]),
       interceptLogging: fixTyped(DEFAULT, unc, "interceptLogging", ["boolean"]),
       language: fixInSet(DEFAULT, unc, "language", DEFAULTABLE_LANGUAGES),
       macOSOptionKeyPassthrough: fixTyped(

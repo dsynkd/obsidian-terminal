@@ -153,6 +153,9 @@ export function loadTerminal(context: TerminalPlugin): void {
   });
   context.registerEvent(
     workspace.on("file-menu", (menu, file) => {
+      if (!settings.value.addContextMenu) {
+        return;
+      }
       const folder = file instanceof TFolder ? file : file.parent;
       if (!folder) {
         return;
@@ -167,6 +170,9 @@ export function loadTerminal(context: TerminalPlugin): void {
   );
   context.registerEvent(
     workspace.on("editor-menu", (menu, _0, info) => {
+      if (!settings.value.addContextMenu) {
+        return;
+      }
       const { file } = info;
       if (info instanceof MarkdownView || !file?.parent) {
         return;

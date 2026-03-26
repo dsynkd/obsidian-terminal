@@ -257,7 +257,26 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             },
           ),
         );
-    });
+    })
+      .newSetting(containerEl, (setting) => {
+        setting
+          .setName("Add context menu")
+          .setDesc(
+            "Add 'Open in terminal' to the file explorer and editor context menus.",
+          )
+          .addToggle(
+            linkSetting(
+              () => settings.value.addContextMenu,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.addContextMenu = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
+      });
     this.newSectionWidget(() => "Advanced");
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
