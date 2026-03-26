@@ -12,14 +12,10 @@ import { ProfileListModal, TerminalOptionsModal } from "./modals.js";
 import { Settings } from "./settings-data.js";
 import { RENDERER_NAMES, formatProfileShort, listDescription } from "./i18n-strings.js";
 import type { TerminalPlugin } from "./main.js";
-import type { loadDocumentations } from "./documentations.js";
 import { size } from "lodash-es";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
-  public constructor(
-    protected override readonly context: TerminalPlugin,
-    protected readonly docs: loadDocumentations.Loaded,
-  ) {
+  public constructor(protected override readonly context: TerminalPlugin) {
     super(context);
   }
 
@@ -392,9 +388,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
   }
 }
 
-export function loadSettings(
-  context: TerminalPlugin,
-  docs: loadDocumentations.Loaded,
-): void {
-  context.addSettingTab(new SettingTab(context, docs));
+export function loadSettings(context: TerminalPlugin): void {
+  context.addSettingTab(new SettingTab(context));
 }

@@ -15,8 +15,6 @@ import { LocalSettings, Settings } from "./settings-data.js";
 import { MAX_HISTORY, PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { DeveloperConsolePseudoterminal } from "./terminal/pseudoterminal.js";
 import { PluginLocales } from "../assets/locales.js";
-import { isNil } from "lodash-es";
-import { loadDocumentations } from "./documentations.js";
 import { loadIcons } from "./icons.js";
 import { loadSettings } from "./settings.js";
 import { loadTerminal } from "./terminal/load.js";
@@ -64,8 +62,8 @@ export class TerminalPlugin
   public override onload(): void {
     (async (): Promise<void> => {
       try {
-        const loaded: unknown = await this.loadData(),
-          {
+        await this.loadData();
+        const {
             developerConsolePTY,
             earlyPatch,
             language,
@@ -114,7 +112,7 @@ export class TerminalPlugin
             loadIcons(this);
           }),
           Promise.resolve().then(() => {
-            loadSettings(this, loadDocumentations(this, isNil(loaded)));
+            loadSettings(this);
           }),
           Promise.resolve().then(() => {
             loadTerminal(this);
