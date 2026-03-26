@@ -49,6 +49,7 @@ import { Settings } from "./settings-data.js";
 import type { TerminalPlugin } from "./main.js";
 import getPackageVersion from "./get_package_version.py";
 import semverCoerce from "semver/functions/coerce.js";
+import { PLATFORM_NAMES, capitalize, listDescription, profileTypeName } from "./i18n-strings.js";
 
 const childProcess = dynamicRequire<typeof import("node:child_process")>(
     BUNDLE,
@@ -64,19 +65,45 @@ const childProcess = dynamicRequire<typeof import("node:child_process")>(
     return util2.promisify(childProcess2.execFile);
   })();
 
+const PROFILE_PRESET_NAMES: Record<string, string> = {
+  bashIntegrated: "bash: Integrated",
+  cmdExternal: "cmd: External",
+  cmdIntegrated: "cmd: Integrated",
+  darwinExternalDefault: "macOS default: External",
+  darwinIntegratedDefault: "macOS default: Integrated",
+  dashIntegrated: "dash: Integrated",
+  developerConsole: "Developer console",
+  empty: "Empty",
+  gitBashIntegrated: "Git Bash: Integrated",
+  gnomeTerminalExternal: "GNOME Terminal: External",
+  iTerm2External: "iTerm2: External",
+  konsoleExternal: "Konsole: External",
+  linuxExternalDefault: "Linux default: External",
+  linuxIntegratedDefault: "Linux default: Integrated",
+  powershellExternal: "powershell: External",
+  powershellIntegrated: "powershell: Integrated",
+  pwshExternal: "pwsh: External",
+  pwshIntegrated: "pwsh: Integrated",
+  shIntegrated: "sh: Integrated",
+  terminalMacOSExternal: "Terminal (macOS): External",
+  win32ExternalDefault: "Microsoft Windows default: External",
+  win32IntegratedDefault: "Microsoft Windows default: Integrated",
+  wslIntegrated: "Windows Subsystem for Linux: Integrated",
+  wtExternal: "Windows Terminal: External",
+  xtermExternal: "xterm: External",
+  zshIntegrated: "zsh: Integrated",
+};
+
 export class TerminalOptionsModal extends EditDataModal<Settings.Profile.TerminalOptions> {
   public constructor(
     context: TerminalPlugin,
     data: Settings.Profile.TerminalOptions,
     options?: TerminalOptionsModal.Options,
   ) {
-    const {
-      language: { value: i18n },
-    } = context;
     super(context, data, Settings.Profile.fixTerminalOptions, {
       ...options,
       elements: ["data"],
-      title: () => i18n.t("components.terminal-options.title"),
+      title: () => "Terminal options",
     });
   }
 
@@ -86,16 +113,13 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
     errorEl: StatusUI,
   ): void {
     const {
-        context: {
-          language: { value: i18n },
-        },
         data,
       } = this,
       temp = new WeakMap<Setting, string>();
     ui.new(
       () => createChildElement(element, "div"),
       (ele) => {
-        ele.innerHTML = i18n.t("components.terminal-options.description-HTML");
+        ele.innerHTML = 'See <a aria-label="https://xtermjs.org/docs/api/terminal/interfaces/iterminaloptions/" class="external-link" data-tooltip-position="top" href="https://xtermjs.org/docs/api/terminal/interfaces/iterminaloptions/" rel="noopener" target="_blank"><code>ITerminalOptions</code></a> for all options.';
       },
       (ele) => {
         ele.remove();
@@ -103,7 +127,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
     )
       .newSetting(element, (setting) => {
         setting
-          .setName(i18n.t("components.terminal-options.font-family"))
+          .setName("Font family")
           .addText(
             linkSetting(
               () => data.fontFamily ?? "",
@@ -114,11 +138,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
               {
                 post(component) {
                   if (data.fontFamily === void 0) {
-                    component.setPlaceholder(
-                      i18n.t(
-                        "components.terminal-options.undefined-placeholder",
-                      ),
-                    );
+                    component.setPlaceholder("(Undefined)");
                   }
                 },
               },
@@ -127,9 +147,9 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
           .addButton((button) =>
             button
               .setIcon(
-                i18n.t("asset:components.terminal-options.undefine-icon"),
+                "x",
               )
-              .setTooltip(i18n.t("components.terminal-options.undefine"))
+              .setTooltip("Undefine")
               .onClick(async () => {
                 delete data.fontFamily;
                 await this.postMutate2(errorEl);
@@ -138,7 +158,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
       })
       .newSetting(element, (setting) => {
         setting
-          .setName(i18n.t("components.terminal-options.font-size"))
+          .setName("Font size")
           .addText(
             linkSetting(
               () => data.fontSize?.toString() ?? "",
@@ -159,7 +179,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
                 post(component) {
                   component.inputEl.type = "number";
                   component.setPlaceholder(
-                    i18n.t("components.terminal-options.undefined-placeholder"),
+                    "(Undefined)",
                   );
                 },
               },
@@ -168,9 +188,9 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
           .addButton((button) =>
             button
               .setIcon(
-                i18n.t("asset:components.terminal-options.undefine-icon"),
+                "x",
               )
-              .setTooltip(i18n.t("components.terminal-options.undefine"))
+              .setTooltip("Undefine")
               .onClick(async () => {
                 delete data.fontSize;
                 await this.postMutate2(errorEl);
@@ -179,7 +199,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
       })
       .newSetting(element, (setting) => {
         setting
-          .setName(i18n.t("components.terminal-options.font-weight"))
+          .setName("Font weight")
           .setDesc(
             temp.has(setting)
               ? createDocumentFragment(
@@ -187,9 +207,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
                   (frag) => {
                     createChildElement(frag, "span", (ele) => {
                       ele.classList.add(DOMClasses.MOD_WARNING);
-                      ele.textContent = i18n.t(
-                        "components.terminal-options.invalid-description",
-                      );
+                      ele.textContent = "Invalid";
                     });
                   },
                 )
@@ -228,7 +246,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
               {
                 post(component) {
                   component.setPlaceholder(
-                    i18n.t("components.terminal-options.undefined-placeholder"),
+                    "(Undefined)",
                   );
                 },
               },
@@ -237,9 +255,9 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
           .addButton((button) =>
             button
               .setIcon(
-                i18n.t("asset:components.terminal-options.undefine-icon"),
+                "x",
               )
-              .setTooltip(i18n.t("components.terminal-options.undefine"))
+              .setTooltip("Undefine")
               .onClick(async () => {
                 delete data.fontWeight;
                 temp.delete(setting);
@@ -249,7 +267,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
       })
       .newSetting(element, (setting) => {
         setting
-          .setName(i18n.t("components.terminal-options.bold-font-weight"))
+          .setName("Bold font weight")
           .setDesc(
             temp.has(setting)
               ? createDocumentFragment(
@@ -257,9 +275,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
                   (frag) => {
                     createChildElement(frag, "span", (ele) => {
                       ele.classList.add(DOMClasses.MOD_WARNING);
-                      ele.textContent = i18n.t(
-                        "components.terminal-options.invalid-description",
-                      );
+                      ele.textContent = "Invalid";
                     });
                   },
                 )
@@ -298,7 +314,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
               {
                 post(component) {
                   component.setPlaceholder(
-                    i18n.t("components.terminal-options.undefined-placeholder"),
+                    "(Undefined)",
                   );
                 },
               },
@@ -307,9 +323,9 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
           .addButton((button) =>
             button
               .setIcon(
-                i18n.t("asset:components.terminal-options.undefine-icon"),
+                "x",
               )
-              .setTooltip(i18n.t("components.terminal-options.undefine"))
+              .setTooltip("Undefine")
               .onClick(async () => {
                 delete data.fontWeightBold;
                 temp.delete(setting);
@@ -350,9 +366,7 @@ export class ProfileModal extends Modal {
       readonly name: string;
       readonly value: Settings.Profile;
     }[] = PROFILE_PRESET_ORDERED_KEYS.map((key) => ({
-      get name(): string {
-        return context.language.value.t(`profile-presets.${key}`);
-      },
+      name: PROFILE_PRESET_NAMES[key] ?? key,
       value: PROFILE_PRESETS[key],
     })),
   ) {
@@ -368,7 +382,7 @@ export class ProfileModal extends Modal {
       { element: listEl, remover: listElRemover } = useSettings(this.contentEl),
       profile = data,
       { language } = context,
-      { value: i18n, onChangeLanguage } = language;
+      { onChangeLanguage } = language;
     modalUI
       .finally(
         onChangeLanguage.listen(() => {
@@ -378,11 +392,7 @@ export class ProfileModal extends Modal {
       .new(
         constant(titleEl),
         (ele) => {
-          ele.textContent = i18n.t("components.profile.title", {
-            interpolation: { escapeValue: false },
-            name: Settings.Profile.name(profile),
-            profile,
-          });
+          ele.textContent = Settings.Profile.name(profile);
         },
         (ele) => {
           ele.textContent = null;
@@ -396,7 +406,7 @@ export class ProfileModal extends Modal {
     let keepPreset = false;
     ui.newSetting(listEl, (setting) => {
       setting
-        .setName(i18n.t("components.profile.name"))
+        .setName("Name")
         .addText(
           linkSetting(
             () => Settings.Profile.name(profile),
@@ -413,7 +423,7 @@ export class ProfileModal extends Modal {
         }
         keepPreset = false;
         setting
-          .setName(i18n.t("components.profile.preset"))
+          .setName("Preset")
           .addDropdown(
             linkSetting(
               () => this.#preset.toString(),
@@ -435,7 +445,7 @@ export class ProfileModal extends Modal {
                   component
                     .addOption(
                       NaN.toString(),
-                      i18n.t("components.profile.preset-placeholder"),
+                      "(Custom)",
                     )
                     .addOptions(
                       Object.fromEntries(
@@ -452,11 +462,11 @@ export class ProfileModal extends Modal {
       })
       .newSetting(listEl, (setting) => {
         setting
-          .setName(i18n.t("components.profile.data"))
+          .setName("Data")
           .addButton((button) => {
             button
-              .setIcon(i18n.t("asset:components.profile.data-icon"))
-              .setTooltip(i18n.t("components.profile.data-edit"))
+              .setIcon("curly-braces")
+              .setTooltip("Edit")
               .onClick(() => {
                 new EditDataModal(context, profile, Settings.Profile.fix, {
                   callback: async (profileM): Promise<void> => {
@@ -465,7 +475,7 @@ export class ProfileModal extends Modal {
                     await this.postMutate();
                   },
                   title(): string {
-                    return i18n.t("components.profile.data");
+                    return "Data";
                   },
                 }).open();
               });
@@ -520,12 +530,11 @@ export class ProfileModal extends Modal {
         context,
         data,
       } = this,
-      profile = data,
-      { value: i18n } = context.language;
+      profile = data;
     ui.destroy();
     ui.newSetting(element, (setting) => {
       setting
-        .setName(i18n.t("components.profile.type"))
+        .setName("Type")
         .addDropdown(
           linkSetting(
             (): string => profile.type,
@@ -545,10 +554,7 @@ export class ProfileModal extends Modal {
                   Object.fromEntries(
                     Settings.Profile.TYPES.map((type) => [
                       type,
-                      i18n.t("components.profile.type-options", {
-                        interpolation: { escapeValue: false },
-                        type,
-                      }),
+                      capitalize(profileTypeName(type)),
                     ]),
                   ),
                 );
@@ -574,13 +580,13 @@ export class ProfileModal extends Modal {
     }
     ui.newSetting(element, (setting) => {
       setting
-        .setName(i18n.t("components.profile.terminal-options"))
+        .setName("Terminal options")
         .addButton((button) =>
           button
             .setIcon(
-              i18n.t("asset:components.profile.terminal-options-edit-icon"),
+              "edit",
             )
-            .setTooltip(i18n.t("components.profile.terminal-options-edit"))
+            .setTooltip("Edit")
             .onClick(() => {
               new TerminalOptionsModal(context, profile.terminalOptions, {
                 callback: async (value): Promise<void> => {
@@ -593,7 +599,7 @@ export class ProfileModal extends Modal {
     })
       .newSetting(element, (setting) => {
         setting
-          .setName(i18n.t("components.profile.follow-theme"))
+          .setName("Follow theme")
           .addToggle(
             linkSetting(
               () => profile.followTheme,
@@ -607,13 +613,11 @@ export class ProfileModal extends Modal {
       .newSetting(element, (setting) => {
         const { settingEl } = setting;
         setting
-          .setName(i18n.t("components.profile.restore-history"))
+          .setName("Restore history")
           .setDesc(
             createDocumentFragment(settingEl.ownerDocument, (frag) => {
               createChildElement(frag, "span", (ele) => {
-                ele.innerHTML = i18n.t(
-                  "components.profile.restore-history-description-HTML",
-                );
+                ele.innerHTML = 'If enabled, history is saved to <code>.obsidian/workspace.json</code>.';
               });
             }),
           )
@@ -629,19 +633,16 @@ export class ProfileModal extends Modal {
       })
       .newSetting(element, (setting) => {
         setting
-          .setName(i18n.t("components.profile.success-exit-codes"))
+          .setName("Success exit codes")
           .setDesc(
-            i18n.t("components.profile.success-exit-codes-description", {
-              count: profile.successExitCodes.length,
-              interpolation: { escapeValue: false },
-            }),
+            listDescription(profile.successExitCodes.length),
           )
           .addButton((button) =>
             button
               .setIcon(
-                i18n.t("asset:components.profile.success-exit-codes-edit-icon"),
+                "list",
               )
-              .setTooltip(i18n.t("components.profile.success-exit-codes-edit"))
+              .setTooltip("Edit")
               .onClick(() => {
                 new ListModal(
                   context,
@@ -657,7 +658,7 @@ export class ProfileModal extends Modal {
                       await this.postMutate();
                     },
                     title: (): string =>
-                      i18n.t("components.profile.success-exit-codes"),
+                      "Success exit codes",
                   },
                 ).open();
               }),
@@ -674,7 +675,7 @@ export class ProfileModal extends Modal {
       case "integrated": {
         ui.newSetting(element, (setting) => {
           setting
-            .setName(i18n.t(`components.profile.${profile.type}.executable`))
+            .setName("Executable")
             .addText(
               linkSetting(
                 () => profile.executable,
@@ -686,25 +687,17 @@ export class ProfileModal extends Modal {
             );
         }).newSetting(element, (setting) => {
           setting
-            .setName(i18n.t(`components.profile.${profile.type}.arguments`))
+            .setName("Arguments")
             .setDesc(
-              i18n.t(
-                `components.profile.${profile.type}.arguments-description`,
-                {
-                  count: profile.args.length,
-                  interpolation: { escapeValue: false },
-                },
-              ),
+              listDescription(profile.args.length),
             )
             .addButton((button) =>
               button
                 .setIcon(
-                  i18n.t(
-                    `asset:components.profile.${profile.type}.arguments-edit-icon`,
-                  ),
+                  "list",
                 )
                 .setTooltip(
-                  i18n.t(`components.profile.${profile.type}.arguments-edit`),
+                  "Edit",
                 )
                 .onClick(() => {
                   new ListModal(
@@ -721,7 +714,7 @@ export class ProfileModal extends Modal {
                         await this.postMutate();
                       },
                       title: (): string =>
-                        i18n.t(`components.profile.${profile.type}.arguments`),
+                        "Arguments",
                     },
                   ).open();
                 }),
@@ -730,18 +723,9 @@ export class ProfileModal extends Modal {
         for (const platform of Pseudoterminal.SUPPORTED_PLATFORMS) {
           ui.newSetting(element, (setting) => {
             setting
-              .setName(
-                i18n.t("components.profile.platform", {
-                  interpolation: { escapeValue: false },
-                  type: platform,
-                }),
-              )
+              .setName(PLATFORM_NAMES[platform] ?? platform)
               .setDesc(
-                i18n.t(
-                  `components.profile.platform-description-${
-                    platform === Platform.CURRENT ? "current" : ""
-                  }`,
-                ),
+                platform === Platform.CURRENT ? "Current platform" : "",
               )
               .addToggle(
                 linkSetting(
@@ -760,17 +744,9 @@ export class ProfileModal extends Modal {
           let checkingPython = false;
           ui.newSetting(element, (setting) => {
             setting
-              .setName(
-                i18n.t(`components.profile.${profile.type}.Python-executable`),
-              )
+              .setName("Python executable")
               .setDesc(
-                i18n.t(
-                  `components.profile.${profile.type}.Python-executable-description`,
-                  {
-                    interpolation: { escapeValue: false },
-                    version: PYTHON_REQUIREMENTS.Python.version,
-                  },
-                ),
+                `Recommend ${PYTHON_REQUIREMENTS.Python.version} or up. Required on Unix to spawn integrated terminal. Clear text field to disable Python.`,
               )
               .addText(
                 linkSetting(
@@ -781,29 +757,16 @@ export class ProfileModal extends Modal {
                   async () => this.postMutate(),
                   {
                     post: (component) => {
-                      component.setPlaceholder(
-                        i18n.t(
-                          `components.profile.${profile.type}.Python-executable-placeholder`,
-                        ),
-                      );
+                      component.setPlaceholder("(Disabled)");
                     },
                   },
                 ),
               )
               .addButton((button) => {
-                const { buttonEl } = button,
-                  i18nVariant = checkingPython ? "ing" : "";
+                const { buttonEl } = button;
                 button
-                  .setIcon(
-                    i18n.t(
-                      `asset:components.profile.${profile.type}.Python-executable-check${i18nVariant}-icon`,
-                    ),
-                  )
-                  .setTooltip(
-                    i18n.t(
-                      `components.profile.${profile.type}.Python-executable-check${i18nVariant}`,
-                    ),
-                  )
+                  .setIcon(checkingPython ? "loader" : "file-check")
+                  .setTooltip(checkingPython ? "Checking" : "Check")
                   .onClick(() => {
                     if (checkingPython) {
                       return;
@@ -837,7 +800,7 @@ export class ProfileModal extends Modal {
                           activeSelf(buttonEl).console.error(stderr);
                         }
                         if (!stdout.trimStart().startsWith("Python ")) {
-                          throw new Error(i18n.t("errors.not-Python"));
+                          throw new Error("Not Python");
                         }
                         const msgs = await Promise.all(
                           Object.entries(PYTHON_REQUIREMENTS)
@@ -888,20 +851,9 @@ export class ProfileModal extends Modal {
                                   buttonEl,
                                 ).console.debug(error);
                               }
-                              const variant =
-                                (ver?.compare(req) ?? -1) >= 0
-                                  ? ""
-                                  : "unsatisfied";
+                              const satisfied = (ver?.compare(req) ?? -1) >= 0;
                               return (): string =>
-                                i18n.t(
-                                  `notices.Python-status-entry-${variant}`,
-                                  {
-                                    interpolation: { escapeValue: false },
-                                    name,
-                                    requirement: `>=${req.version}`,
-                                    version: ver?.version ?? "",
-                                  },
-                                );
+                                `${name}: ${ver?.version ?? ""} (${satisfied ? "satisfied" : "unsatisfied"}: >=${req.version})`;
                             }),
                         );
                         notice2(
@@ -912,7 +864,7 @@ export class ProfileModal extends Modal {
                       } catch (error) {
                         printError(
                           anyToError(error),
-                          () => i18n.t("errors.error-checking-Python"),
+                          () => "Error checking Python",
                           context,
                         );
                       } finally {
@@ -928,13 +880,9 @@ export class ProfileModal extends Modal {
               });
           }).newSetting(element, (setting) => {
             setting
-              .setName(
-                i18n.t(`components.profile.${profile.type}.use-win32-conhost`),
-              )
+              .setName("Use Microsoft Windows 'conhost.exe'")
               .setDesc(
-                i18n.t(
-                  `components.profile.${profile.type}.use-win32-conhost-description`,
-                ),
+                "Disable if running 'conhost.exe' does not create a window. No guarantees this will work.",
               )
               .addToggle(
                 linkSetting(
@@ -964,8 +912,7 @@ export class ProfileListModal extends ListModal<
     data: readonly Settings.Profile.Entry[],
     options?: ProfileListModal.Options,
   ) {
-    const { value: i18n } = context.language,
-      dataW = cloneAsWritable(data),
+    const dataW = cloneAsWritable(data),
       dataKeys = new Map(dataW.map(([key, value]) => [value, key])),
       callback = options?.callback ?? ((): void => {}),
       keygen = options?.keygen ?? ((): string => self.crypto.randomUUID());
@@ -974,8 +921,8 @@ export class ProfileListModal extends ListModal<
       (setting, editable, getter, setter) => {
         setting.addButton((button) =>
           button
-            .setIcon(i18n.t("asset:components.profile-list.edit-icon"))
-            .setTooltip(i18n.t("components.profile-list.edit"))
+            .setIcon("edit")
+            .setTooltip("Edit")
             .onClick(() => {
               new ProfileModal(context, getter(), async (value) => {
                 await setter((item) => {
@@ -1010,51 +957,32 @@ export class ProfileListModal extends ListModal<
         descriptor:
           options?.descriptor ??
           ((profile): string => {
-            const id = dataKeys.get(profile) ?? "";
-            return i18n.t(
-              `components.profile-list.descriptor-${
-                Settings.Profile.isCompatible(profile, Platform.CURRENT)
-                  ? ""
-                  : "incompatible"
-              }`,
-              {
-                info: Settings.Profile.info([id, profile]),
-                interpolation: { escapeValue: false },
-              },
-            );
+            const id = dataKeys.get(profile) ?? "",
+              info = Settings.Profile.info([id, profile]);
+            return Settings.Profile.isCompatible(profile, Platform.CURRENT)
+              ? info.id
+              : "(Incompatible) " + info.id;
           }),
         namer:
           options?.namer ??
           ((profile): string => {
             const id = dataKeys.get(profile) ?? "";
-            return i18n.t(
-              `components.profile-list.namer-${
-                Settings.Profile.isCompatible(profile, Platform.CURRENT)
-                  ? ""
-                  : "incompatible"
-              }`,
-              {
-                info: Settings.Profile.info([id, profile]),
-                interpolation: { escapeValue: false },
-              },
-            );
+            return Settings.Profile.info([id, profile]).name;
           }),
         presetPlaceholder:
           options?.presetPlaceholder ??
-          ((): string => i18n.t("components.profile-list.preset-placeholder")),
+          ((): string => "(Unselected)"),
         presets:
           options?.presets ??
           PROFILE_PRESET_ORDERED_KEYS.map((key) => ({
-            get name(): string {
-              return context.language.value.t(`profile-presets.${key}`);
-            },
+            name: PROFILE_PRESET_NAMES[key] ?? key,
             get value(): DeepWritable<Settings.Profile> {
               return cloneAsWritable(PROFILE_PRESETS[key]);
             },
           })),
         title:
           options?.title ??
-          ((): string => i18n.t("components.profile-list.title")),
+          ((): string => "Profiles"),
       },
     );
     this.dataKeys = dataKeys;

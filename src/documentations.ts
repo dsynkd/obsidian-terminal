@@ -83,7 +83,6 @@ class Loaded0 {
       context,
       context: {
         version,
-        language: { value: i18n },
         localSettings,
       },
       docMdView,
@@ -104,7 +103,7 @@ class Loaded0 {
       } catch (error) {
         printError(
           anyToError(error),
-          () => i18n.t("errors.error-opening-documentation"),
+          () => "Error opening documentation",
           context,
         );
       }

@@ -78,6 +78,7 @@ import {
   mergeTerminalOptions,
   applyTerminalOptionDiffShallow,
 } from "./options.js";
+import { capitalize, formatProfileShort, profileTypeName } from "../i18n-strings.js";
 
 const xtermAddonCanvas = dynamicRequire<typeof import("@xterm/addon-canvas")>(
     BUNDLE,
@@ -114,11 +115,8 @@ export class EditTerminalModal extends DialogModal {
     protected readonly protostate: TerminalView.State,
     confirm: (state_: DeepWritable<typeof protostate>) => unknown,
   ) {
-    const {
-      language: { value: i18n },
-    } = context;
     super(context, {
-      title: () => i18n.t("components.terminal.edit-modal.title"),
+      title: () => "Edit terminal",
     });
     this.state = cloneAsWritable(protostate);
     this.#confirm = confirm;
@@ -127,14 +125,13 @@ export class EditTerminalModal extends DialogModal {
   public override onOpen(): void {
     super.onOpen();
     const {
-        context,
-        context: {
-          settings,
-          language: { value: i18n },
-          app: {
-            vault: { adapter },
-          },
+      context,
+      context: {
+        settings,
+        app: {
+          vault: { adapter },
         },
+      },
         ui,
         state,
       } = this,
@@ -142,7 +139,7 @@ export class EditTerminalModal extends DialogModal {
     ui.finally(listElRemover)
       .newSetting(listEl, (setting) => {
         setting
-          .setName(i18n.t("components.terminal.edit-modal.working-directory"))
+          .setName("Working directory")
           .addText(
             linkSetting(
               () => state.cwd ?? "",
@@ -154,25 +151,15 @@ export class EditTerminalModal extends DialogModal {
               },
               {
                 post: (component) => {
-                  component.setPlaceholder(
-                    i18n.t(
-                      "components.terminal.edit-modal.working-directory-placeholder",
-                    ),
-                  );
+                  component.setPlaceholder("(Undefined)");
                 },
               },
             ),
           )
           .addButton((button) =>
             button
-              .setIcon(
-                i18n.t(
-                  "asset:components.terminal.edit-modal.root-directory-icon",
-                ),
-              )
-              .setTooltip(
-                i18n.t("components.terminal.edit-modal.root-directory"),
-              )
+              .setIcon("folder-tree")
+              .setTooltip("Root directory")
               .onClick(() => {
                 state.cwd =
                   adapter instanceof FileSystemAdapter
@@ -186,7 +173,7 @@ export class EditTerminalModal extends DialogModal {
         const { profiles } = settings.value,
           unselected = randomNotIn(Object.keys(profiles));
         setting
-          .setName(i18n.t("components.terminal.edit-modal.profile"))
+          .setName("Profile")
           .addDropdown(
             linkSetting(
               () => this.#profile ?? unselected,
@@ -207,30 +194,20 @@ export class EditTerminalModal extends DialogModal {
                   component
                     .addOption(
                       unselected,
-                      i18n.t(
-                        "components.terminal.edit-modal.profile-placeholder",
-                      ),
+                      "(Custom)",
                     )
                     .addOptions(
                       Object.fromEntries(
-                        Object.entries(profiles).map((entry) => [
-                          entry[0],
-
-                          i18n.t(
-                            `components.terminal.edit-modal.profile-name-${
-                              Settings.Profile.isCompatible(
-                                entry[1],
-                                Platform.CURRENT,
-                              )
-                                ? ""
-                                : "incompatible"
-                            }`,
-                            {
-                              info: Settings.Profile.info(entry),
-                              interpolation: { escapeValue: false },
-                            },
-                          ),
-                        ]),
+                        Object.entries(profiles).map((entry) => {
+                          const info = Settings.Profile.info(entry);
+                          const label = Settings.Profile.isCompatible(
+                            entry[1],
+                            Platform.CURRENT,
+                          )
+                            ? formatProfileShort(info)
+                            : "(Incompatible) " + formatProfileShort(info);
+                          return [entry[0], label];
+                        }),
                       ),
                     );
                 },
@@ -239,12 +216,8 @@ export class EditTerminalModal extends DialogModal {
           )
           .addButton((button) =>
             button
-              .setIcon(
-                i18n.t(
-                  "asset:components.terminal.edit-modal.profile-edit-icon",
-                ),
-              )
-              .setTooltip(i18n.t("components.terminal.edit-modal.profile-edit"))
+              .setIcon("edit")
+              .setTooltip("Edit")
               .onClick(() => {
                 new ProfileModal(context, state.profile, (profile0) => {
                   this.#profile = null;
@@ -317,8 +290,7 @@ export class TerminalView extends ItemView {
   }
 
   protected get name(): string {
-    const { context: plugin, state } = this,
-      { value: i18n } = plugin.language,
+    const { state } = this,
       { profile } = state,
       { name, type } = profile;
     if (this.title) {
@@ -333,10 +305,7 @@ export class TerminalView extends ItemView {
         return basename(executable, extname(executable));
       }
     }
-    return i18n.t("components.terminal.name.profile-type", {
-      interpolation: { escapeValue: false },
-      type,
-    });
+    return capitalize(profileTypeName(type));
   }
 
   protected get hidesStatusBar(): boolean {
@@ -378,7 +347,7 @@ export class TerminalView extends ItemView {
     this.#emulator0?.close(false).catch((error: unknown) => {
       printError(
         anyToError(error),
-        () => plugin.language.value.t("errors.error-killing-pseudoterminal"),
+        () => "Error killing pseudoterminal",
         plugin,
       );
     });
@@ -406,7 +375,6 @@ export class TerminalView extends ItemView {
   public static load(context: TerminalPlugin): void {
     const {
       app: { workspace },
-      language: { value: i18n },
     } = context;
     this.#namespacedType = this.type.namespaced(context);
     context.registerView(
@@ -443,7 +411,7 @@ export class TerminalView extends ItemView {
         }
         return callback(checking, lastFocus);
       };
-    addCommand(context, () => i18n.t("commands.focus-on-last-terminal"), {
+    addCommand(context, () => "Focus on last terminal", {
       checkCallback: withLastFocusedView(
         (checking, view) => {
           if (!checking) {
@@ -454,13 +422,13 @@ export class TerminalView extends ItemView {
         [false],
       ),
       // No hotkeys: hotkeys: [],
-      icon: i18n.t("asset:commands.focus-on-last-terminal-icon"),
+      icon: "focus",
       id: "focus-on-last-terminal",
     });
     const focusedScopeIDs = new Set([
         addCommand(
           context,
-          () => i18n.t("commands.toggle-focus-on-last-terminal"),
+          () => "Toggle focus on last terminal",
           {
             checkCallback: withLastFocusedView(
               (checking, view) => {
@@ -482,11 +450,11 @@ export class TerminalView extends ItemView {
                 modifiers: ["Ctrl", "Shift"],
               },
             ],
-            icon: i18n.t("asset:commands.toggle-focus-on-last-terminal-icon"),
+            icon: "focus",
             id: "toggle-focus-on-last-terminal",
           },
         ).id,
-        addCommand(context, () => i18n.t("commands.unfocus-terminal"), {
+        addCommand(context, () => "Unfocus terminal", {
           checkCallback: withLastFocusedView((checking, view) => {
             if (!checking) {
               view.unfocus();
@@ -494,10 +462,10 @@ export class TerminalView extends ItemView {
             return true;
           }),
           // No hotkeys: hotkeys: [],
-          icon: i18n.t("asset:commands.unfocus-terminal-icon"),
+          icon: "minimize",
           id: "unfocus-terminal",
         }).id,
-        addCommand(context, () => i18n.t("commands.clear-terminal"), {
+        addCommand(context, () => "Clear terminal", {
           checkCallback: withLastFocusedView((checking, view) => {
             if (!checking) {
               view.emulator?.terminal.clear();
@@ -510,10 +478,10 @@ export class TerminalView extends ItemView {
               modifiers: ["Mod", "Shift"],
             },
           ],
-          icon: i18n.t("asset:commands.clear-terminal-icon"),
+          icon: "eraser",
           id: "clear-terminal",
         }).id,
-        addCommand(context, () => i18n.t("commands.close-terminal"), {
+        addCommand(context, () => "Close terminal", {
           checkCallback: withLastFocusedView((checking, view) => {
             if (!checking) {
               view.leaf.detach();
@@ -526,10 +494,10 @@ export class TerminalView extends ItemView {
               modifiers: ["Mod", "Shift"],
             },
           ],
-          icon: i18n.t("asset:commands.close-terminal-icon"),
+          icon: "x",
           id: "close-terminal",
         }).id,
-        addCommand(context, () => i18n.t("commands.find-in-terminal"), {
+        addCommand(context, () => "Find in terminal", {
           checkCallback: withLastFocusedView((checking, view) => {
             if (!checking) {
               view.startFind();
@@ -542,7 +510,7 @@ export class TerminalView extends ItemView {
               modifiers: ["Mod", "Shift"],
             },
           ],
-          icon: i18n.t("asset:commands.find-in-terminal-icon"),
+          icon: "search",
           id: "find-in-terminal",
         }).id,
       ]),
@@ -585,19 +553,11 @@ export class TerminalView extends ItemView {
   }
 
   public getDisplayText(): string {
-    return this.context.language.value.t(
-      `components.${TerminalView.type.id}.display-name`,
-      {
-        interpolation: { escapeValue: false },
-        name: this.name,
-      },
-    );
+    return `Terminal: ${this.name}`;
   }
 
   public override getIcon(): string {
-    return this.context.language.value.t(
-      `asset:components.${TerminalView.type.id}.icon`,
-    );
+    return "terminal";
   }
 
   public getViewType(): string {
@@ -608,9 +568,6 @@ export class TerminalView extends ItemView {
     super.onPaneMenu(menu, source);
     const {
       context,
-      context: {
-        language: { value: i18n },
-      },
       leaf,
       app: {
         vault: { adapter },
@@ -620,16 +577,16 @@ export class TerminalView extends ItemView {
       .addSeparator()
       .addItem((item) =>
         item
-          .setTitle(i18n.t("components.terminal.menus.clear"))
-          .setIcon(i18n.t("asset:components.terminal.menus.clear-icon"))
+          .setTitle("Clear")
+          .setIcon("eraser")
           .onClick(() => {
             this.emulator?.terminal.clear();
           }),
       )
       .addItem((item) =>
         item
-          .setTitle(i18n.t("components.terminal.menus.find"))
-          .setIcon(i18n.t("asset:components.terminal.menus.find-icon"))
+          .setTitle("Find")
+          .setIcon("search")
           .setDisabled(this.find !== null)
           .onClick(() => {
             this.startFind();
@@ -638,8 +595,8 @@ export class TerminalView extends ItemView {
       .addSeparator()
       .addItem((item) =>
         item
-          .setTitle(i18n.t("components.terminal.menus.copy"))
-          .setIcon(i18n.t("asset:components.terminal.menus.copy-icon"))
+          .setTitle("Copy")
+          .setIcon("copy")
           .onClick(async () =>
             TerminalView.spawn(
               context,
@@ -651,8 +608,8 @@ export class TerminalView extends ItemView {
       )
       .addItem((item) =>
         item
-          .setTitle(i18n.t("components.terminal.menus.edit"))
-          .setIcon(i18n.t("asset:components.terminal.menus.edit-icon"))
+          .setTitle("Edit")
+          .setIcon("edit")
           .onClick(() => {
             new EditTerminalModal(context, this.state, async (state) =>
               TerminalView.spawn(context, state, leaf, this.getViewType()),
@@ -661,8 +618,8 @@ export class TerminalView extends ItemView {
       )
       .addItem((item) =>
         item
-          .setTitle(i18n.t("components.terminal.menus.restart"))
-          .setIcon(i18n.t("asset:components.terminal.menus.restart-icon"))
+          .setTitle("Restart")
+          .setIcon("reset")
           .onClick(() => {
             this.startEmulator(true);
           }),
@@ -670,8 +627,8 @@ export class TerminalView extends ItemView {
       .addSeparator()
       .addItem((item) =>
         item
-          .setTitle(i18n.t("components.terminal.menus.save-as-HTML"))
-          .setIcon(i18n.t("asset:components.terminal.menus.save-as-HTML-icon"))
+          .setTitle("Save as HTML")
+          .setIcon("save")
           .setDisabled(!this.emulator?.addons.serialize)
           .onClick(async () => {
             const ser = this.emulator?.addons.serialize;
@@ -739,18 +696,8 @@ export class TerminalView extends ItemView {
     await super.onOpen();
     const { focusedScope } = TerminalView,
       { context, contentEl, app } = this,
-      { language, statusBarHider } = context,
-      { value: i18n } = language,
+      { statusBarHider } = context,
       { keymap } = app;
-
-    this.register(
-      language.onChangeLanguage.listen(() => {
-        updateView(context, this);
-        if (this.find) {
-          this.find[1].i18nt = i18n.t.bind(i18n); // `bind` to preserve the context for potential i18n features that rely on it
-        }
-      }),
-    );
 
     this.register(() => {
       keymap.popScope(focusedScope);
@@ -803,9 +750,7 @@ export class TerminalView extends ItemView {
   }
 
   protected startFind(): void {
-    const { context: plugin, contentEl } = this,
-      { language } = plugin,
-      { value: i18n } = language;
+    const { contentEl } = this;
     if (!this.find) {
       const onFind = (
           direction: FindComponent$.Direction,
@@ -846,7 +791,6 @@ export class TerminalView extends ItemView {
       assignExact(optional, "anchor", contentEl.firstElementChild ?? void 0);
       const props = svelteState({
         focused: true,
-        i18nt: i18n.t.bind(i18n), // `bind` to preserve the context for potential i18n features that rely on it
         onClose: () => {
           this.find = null;
         },
@@ -890,7 +834,7 @@ export class TerminalView extends ItemView {
         } catch (error) {
           printError(
             anyToError(error),
-            () => i18n.t("errors.error-spawning-terminal"),
+            () => "Error spawning terminal",
             context,
           );
         }
@@ -936,10 +880,7 @@ export class TerminalView extends ItemView {
                 if (serial) {
                   await writePromise(
                     terminal,
-                    i18n.t("components.terminal.restored-history", {
-                      datetime: new Date(),
-                      interpolation: { escapeValue: false },
-                    }),
+                    `\r\n * Restored history at ${new Date().toLocaleString(undefined, { dateStyle: "full", timeStyle: "full" })}\r\n\r\n`,
                   );
                 }
                 const ret = await openProfile(context, profile, {
@@ -950,30 +891,13 @@ export class TerminalView extends ItemView {
                   return ret;
                 }
                 const pty = new TextPseudoterminal(
-                  i18n.t("components.terminal.unsupported-profile", {
-                    interpolation: { escapeValue: false },
-                    profile: JSON.stringify(
-                      profile,
-                      null,
-                      JSON_STRINGIFY_SPACE,
-                    ),
-                  }),
+                  `Unsupported profile:\r\n${JSON.stringify(profile, null, JSON_STRINGIFY_SPACE)}\r\n`,
                 );
                 pty.onExit
                   .catch(noop satisfies () => unknown as () => unknown)
                   .finally(
                     onChangeLanguage.listen(() => {
-                      pty.text = i18n.t(
-                        "components.terminal.unsupported-profile",
-                        {
-                          interpolation: { escapeValue: false },
-                          profile: JSON.stringify(
-                            profile,
-                            null,
-                            JSON_STRINGIFY_SPACE,
-                          ),
-                        },
-                      );
+                      pty.text = `Unsupported profile:\r\n${JSON.stringify(profile, null, JSON_STRINGIFY_SPACE)}\r\n`;
                     }),
                   );
                 return pty;
@@ -1057,7 +981,7 @@ export class TerminalView extends ItemView {
               (error: unknown) => {
                 printError(
                   anyToError(error),
-                  () => i18n.t("errors.error-spawning-terminal"),
+                  () => "Error spawning terminal",
                   context,
                 );
               },

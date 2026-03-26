@@ -10,6 +10,7 @@ import {
 } from "@polyipseity/obsidian-plugin-library";
 import { ProfileListModal, TerminalOptionsModal } from "./modals.js";
 import { Settings } from "./settings-data.js";
+import { RENDERER_NAMES, formatProfileShort, listDescription } from "./i18n-strings.js";
 import type { TerminalPlugin } from "./main.js";
 import type { loadDocumentations } from "./documentations.js";
 import { size } from "lodash-es";
@@ -27,25 +28,17 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     const {
       containerEl,
       context,
-      context: {
-        language: { value: i18n },
-        settings,
-      },
+      context: { settings },
       ui,
     } = this;
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.profiles"))
-        .setDesc(
-          i18n.t("settings.profiles-description", {
-            count: size(settings.value.profiles),
-            interpolation: { escapeValue: false },
-          }),
-        )
+        .setName("Profiles")
+        .setDesc(listDescription(size(settings.value.profiles)))
         .addButton((button) =>
           button
-            .setIcon(i18n.t("asset:settings.profiles-edit-icon"))
-            .setTooltip(i18n.t("settings.profiles-edit"))
+            .setIcon("list")
+            .setTooltip("Edit")
             .onClick(() => {
               new ProfileListModal(
                 context,
@@ -58,15 +51,15 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                     this.postMutate();
                   },
                   description: (): string =>
-                    i18n.t("settings.profile-list.description"),
+                    "The first compatible profile in the list is the default for its terminal type.",
                 },
               ).open();
             }),
         );
     }).newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.default-profile"))
-        .setDesc(i18n.t("settings.default-profile-description"))
+        .setName("Default profile")
+        .setDesc("Profile to open when clicking the ribbon icon. Leave empty to show profile selector.")
         .addDropdown(
           linkSetting(
             (): string => settings.value.defaultProfile ?? "",
@@ -82,26 +75,18 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             {
               pre: (dropdown) => {
                 dropdown
-                  .addOption("", i18n.t("components.dropdown.placeholder"))
+                  .addOption("", "(Unselected)")
                   .addOptions(
                     Object.fromEntries(
                       Object.entries(settings.value.profiles).map(
                         ([id, profile]) => [
                           id,
-                          i18n.t(
-                            `settings.default-profile-name-${
-                              Settings.Profile.isCompatible(
-                                profile,
-                                Platform.CURRENT,
-                              )
-                                ? ""
-                                : "incompatible"
-                            }`,
-                            {
-                              info: Settings.Profile.info([id, profile]),
-                              interpolation: { escapeValue: false },
-                            },
-                          ),
+                          Settings.Profile.isCompatible(
+                            profile,
+                            Platform.CURRENT,
+                          )
+                            ? formatProfileShort(Settings.Profile.info([id, profile]))
+                            : "(Incompatible) " + formatProfileShort(Settings.Profile.info([id, profile])),
                         ],
                       ),
                     ),
@@ -111,27 +96,14 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     });
-
-    // profile defaults section
-    this.newSectionWidget(() => i18n.t("settings.profile-defaults"));
-    ui.new(
-      () => createChildElement(containerEl, "div"),
-      (ele) => {
-        ele.classList.add(DOMClasses.SETTING_ITEM);
-        ele.textContent = i18n.t("settings.profile-defaults-description");
-      },
-      (ele) => {
-        ele.remove();
-      },
-    );
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.terminal-options"))
-        .setDesc(i18n.t("settings.terminal-options-description"))
+        .setName("Terminal options")
+        .setDesc("Shallow-merged into every profile unless a specific profile explicitly overrides them.")
         .addButton((button) =>
           button
-            .setIcon(i18n.t("asset:settings.terminal-options-edit-icon"))
-            .setTooltip(i18n.t("settings.terminal-options-edit"))
+            .setIcon("edit")
+            .setTooltip("Edit")
             .onClick(() => {
               new TerminalOptionsModal(
                 context,
@@ -149,10 +121,21 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
         );
     });
 
-    this.newSectionWidget(() => i18n.t("settings.instancing"));
+    const NEW_INSTANCE_BEHAVIOR_NAMES: Record<string, string> = {
+      newHorizontalSplit: "New horizontal split",
+      newLeftSplit: "New left split",
+      newLeftTab: "New left tab",
+      newRightSplit: "New right split",
+      newRightTab: "New right tab",
+      newTab: "New tab",
+      newVerticalSplit: "New vertical split",
+      newWindow: "New window",
+      replaceTab: "Replace tab",
+    };
+    this.newSectionWidget(() => "Instancing");
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.new-instance-behavior"))
+        .setName("New instance behavior")
         .addDropdown(
           linkSetting(
             (): string => settings.value.newInstanceBehavior,
@@ -170,7 +153,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                   Object.fromEntries(
                     Settings.NEW_INSTANCE_BEHAVIORS.map((value) => [
                       value,
-                      i18n.t(`settings.new-instance-behaviors.${value}`),
+                      NEW_INSTANCE_BEHAVIOR_NAMES[value] ?? value,
                     ]),
                   ),
                 );
@@ -181,9 +164,9 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName(i18n.t("settings.create-instance-near-existing-ones"))
+          .setName("Create instance near existing ones")
           .setDesc(
-            i18n.t("settings.create-instance-near-existing-ones-description"),
+            "Overrides 'New instance behavior' when instance exists if true.",
           )
           .addToggle(
             linkSetting(
@@ -200,7 +183,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName(i18n.t("settings.focus-on-new-instance"))
+          .setName("Focus on new instance")
           .addToggle(
             linkSetting(
               () => settings.value.focusOnNewInstance,
@@ -216,7 +199,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName(i18n.t("settings.pin-new-instance"))
+          .setName("Pin new instance")
           .addToggle(
             linkSetting(
               () => settings.value.pinNewInstance,
@@ -231,10 +214,16 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           );
       });
 
-    this.newSectionWidget(() => i18n.t("settings.interface"));
+    const HIDE_STATUS_BAR_OPTION_NAMES: Record<string, string> = {
+      always: "Always",
+      focused: "When terminal is focused",
+      never: "Never",
+      running: "When terminal is running",
+    };
+    this.newSectionWidget(() => "Interface");
     ui.newSetting(containerEl, (setting) => {
       setting
-        .setName(i18n.t("settings.hide-status-bar"))
+        .setName("Hide status bar")
         .addDropdown(
           linkSetting(
             (): string => settings.value.hideStatusBar,
@@ -252,7 +241,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                   Object.fromEntries(
                     Settings.HIDE_STATUS_BAR_OPTIONS.map((value) => [
                       value,
-                      i18n.t(`settings.hide-status-bar-options.${value}`),
+                      HIDE_STATUS_BAR_OPTION_NAMES[value] ?? value,
                     ]),
                   ),
                 );
@@ -261,17 +250,15 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     });
-    this.newSectionWidget(() => i18n.t("settings.advanced"));
+    this.newSectionWidget(() => "Advanced");
     ui.newSetting(containerEl, (setting) => {
       const { settingEl } = setting;
       setting
-        .setName(i18n.t("settings.expose-internal-modules"))
+        .setName("Expose internal modules")
         .setDesc(
           createDocumentFragment(settingEl.ownerDocument, (frag) => {
             createChildElement(frag, "span", (ele) => {
-              ele.innerHTML = i18n.t(
-                "settings.expose-internal-modules-description-HTML",
-              );
+              ele.innerHTML = '<code>obsidian</code>, <code>@codemirror/*</code>, <code>@lezer/*</code>\u2026';
             });
           }),
         )
@@ -290,7 +277,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName(i18n.t("settings.intercept-logging"))
+          .setName("Intercept logging")
           .addToggle(
             linkSetting(
               () => settings.value.interceptLogging,
@@ -306,8 +293,8 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName(i18n.t("settings.macOS-option-key-passthrough"))
-          .setDesc(i18n.t("settings.macOS-option-key-passthrough-description"))
+          .setName("macOS: Option key passthrough")
+          .setDesc("Allow Option+key combinations to reach the terminal for typing special characters (e.g., @ on Scandinavian/German keyboards).")
           .addToggle(
             linkSetting(
               () => settings.value.macOSOptionKeyPassthrough,
@@ -323,7 +310,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName(i18n.t("settings.preferred-renderer"))
+          .setName("Preferred renderer")
           .addDropdown(
             linkSetting(
               (): string => settings.value.preferredRenderer,
@@ -343,10 +330,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                     Object.fromEntries(
                       Settings.PREFERRED_RENDERER_OPTIONS.map((type) => [
                         type,
-                        i18n.t("settings.preferred-renderer-options", {
-                          interpolation: { escapeValue: false },
-                          type,
-                        }),
+                        RENDERER_NAMES[type] ?? type,
                       ]),
                     ),
                   );

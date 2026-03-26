@@ -57,13 +57,8 @@ export class TerminalPlugin
     this.settings = new SettingsManager(this, Settings.fix);
   }
 
-  public displayName(unlocalized = false): string {
-    return unlocalized
-      ? this.language.value.t("name", {
-          interpolation: { escapeValue: false },
-          lng: PluginLocales.DEFAULT_LANGUAGE,
-        })
-      : this.language.value.t("name");
+  public displayName(_unlocalized = false): string {
+    return "Terminal";
   }
 
   public override onload(): void {

@@ -14,13 +14,13 @@ import { SelectProfileModal, spawnTerminal } from "./spawn.js";
 import { Settings } from "../settings-data.js";
 import type { TerminalPlugin } from "../main.js";
 import { TerminalView } from "./view.js";
+import { capitalize, profileTypeName } from "../i18n-strings.js";
 
 export function loadTerminal(context: TerminalPlugin): void {
   TerminalView.load(context);
   const
     {
       app: { vault, workspace },
-      language: { value: i18n },
       settings,
     } = context,
     defaultProfile = (type: Settings.Profile.Type): Settings.Profile | null => {
@@ -32,10 +32,7 @@ export function loadTerminal(context: TerminalPlugin): void {
       if (!ret) {
         notice2(
           () =>
-            i18n.t("notices.no-default-profile", {
-              interpolation: { escapeValue: false },
-              type,
-            }),
+            `No default profile for type '${capitalize(profileTypeName(type))}'`,
           context?.settings.value.errorNoticeTimeout,
           context,
         );
@@ -52,13 +49,8 @@ export function loadTerminal(context: TerminalPlugin): void {
       }
       return (item: MenuItem) => {
         item
-          .setTitle(i18n.t("menus.open-in-terminal"))
-          .setIcon(
-            i18n.t("asset:menus.open-terminal-icon", {
-              interpolation: { escapeValue: false },
-              type: "integrated",
-            }),
-          )
+          .setTitle("Open in terminal")
+          .setIcon("terminal")
           .onClick(() => {
             const profile = defaultProfile("integrated");
             if (!profile) {
@@ -114,13 +106,13 @@ export function loadTerminal(context: TerminalPlugin): void {
 
   addRibbonIcon(
     context,
-    i18n.t("asset:ribbons.open-terminal-id"),
-    i18n.t("asset:ribbons.open-terminal-icon"),
-    () => i18n.t("ribbons.open-terminal"),
+    "Open terminal",
+    "terminal-square",
+    () => "Open terminal",
     () => openDefaultProfile(),
   );
 
-  addCommand(context, () => i18n.t("commands.toggle-terminal-visibility"), {
+  addCommand(context, () => "Toggle terminal visibility", {
     checkCallback(checking) {
       const doc = context.app.workspace.containerEl.ownerDocument;
       const tabs = Array.from(
@@ -145,7 +137,7 @@ export function loadTerminal(context: TerminalPlugin): void {
       }
       return true;
     },
-    icon: i18n.t("commands.toggle-terminal-visibility"),
+    icon: "eye",
     id: "open-terminal.toggle-visibility",
   });
   context.registerEvent(
@@ -180,22 +172,22 @@ export function loadTerminal(context: TerminalPlugin): void {
 
   /* Always register command for interop with other plugins */
 
-  addCommand(context, () => i18n.t("commands.open-terminal-default-profile"), {
+  addCommand(context, () => "Open terminal: Default profile", {
     checkCallback(checking) {
       return openDefaultProfile(checking);
     },
-    icon: i18n.t("asset:commands.open-terminal-default-icon"),
+    icon: "terminal-square",
     id: "open-terminal.default",
   });
 
   addCommand(
     context,
-    () => i18n.t("commands.open-terminal-current-folder"),
+    () => "Open terminal in current folder",
     {
       checkCallback(checking) {
         return openDefaultProfileInActiveFileFolder(checking);
       },
-      icon: i18n.t("asset:commands.open-terminal-default-icon"),
+      icon: "terminal-square",
       id: "open-terminal.current-folder",
     },
   );

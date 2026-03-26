@@ -778,9 +778,6 @@ class WindowsPseudoterminal implements Pseudoterminal {
   ) {
     this.conhost = useWin32Conhost ?? false;
     const { conhost } = this,
-      {
-        language: { value: i18n },
-      } = context,
       resizerInitial = (async (): Promise<PipedChildProcess | null> => {
         if (isNil(pythonExecutable)) {
           return null;
@@ -807,10 +804,7 @@ class WindowsPseudoterminal implements Pseudoterminal {
               if (code !== 0) {
                 notice2(
                   () =>
-                    i18n.t("errors.resizer-exited-unexpectedly", {
-                      code: code ?? signal,
-                      interpolation: { escapeValue: false },
-                    }),
+                    `Terminal resizer exited unexpectedly: ${code ?? signal}`,
                   context?.settings.value.errorNoticeTimeout,
                   context,
                 );
@@ -905,7 +899,7 @@ class WindowsPseudoterminal implements Pseudoterminal {
                   const error0 = anyToError(error);
                   printError(
                     error0,
-                    () => i18n.t("errors.error-spawning-resizer"),
+                    () => "Error spawning terminal resizer",
                     context,
                   );
                   throw error0;
@@ -985,9 +979,7 @@ class WindowsPseudoterminal implements Pseudoterminal {
 
   public async kill(): Promise<void> {
     if (!(await this.shell).kill()) {
-      throw new Error(
-        this.context.language.value.t("errors.error-killing-pseudoterminal"),
-      );
+      throw new Error("Error killing pseudoterminal");
     }
   }
 
@@ -995,7 +987,7 @@ class WindowsPseudoterminal implements Pseudoterminal {
     const { resizer, context: plugin } = this,
       resizer0 = await resizer;
     if (!resizer0) {
-      throw new Error(plugin.language.value.t("errors.resizer-disabled"));
+      throw new Error("Terminal resizer disabled");
     }
     await writePromise(resizer0.stdin, `${columns}x${rows}\n`);
   }
@@ -1051,12 +1043,9 @@ class UnixPseudoterminal implements Pseudoterminal {
       pythonExecutable,
     }: ShellPseudoterminalArguments,
   ) {
-    const { language } = context;
     this.shell = spawnPromise(async () => {
       if (isNil(pythonExecutable)) {
-        throw new Error(
-          language.value.t("errors.no-Python-to-spawn-Unix-pseudoterminal"),
-        );
+        throw new Error("No Python to spawn Unix pseudoterminal");
       }
       const [childProcess2, process2, unixPseudoterminalPy2] =
           await Promise.all([childProcess, process, unixPseudoterminalPy]),
@@ -1100,9 +1089,7 @@ class UnixPseudoterminal implements Pseudoterminal {
 
   public async kill(): Promise<void> {
     if (!(await this.shell).kill()) {
-      throw new Error(
-        this.context.language.value.t("errors.error-killing-pseudoterminal"),
-      );
+      throw new Error("Error killing pseudoterminal");
     }
   }
 

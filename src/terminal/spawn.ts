@@ -7,6 +7,7 @@ import {
 import { FuzzySuggestModal } from "obsidian";
 import { Settings } from "../settings-data.js";
 import type { TerminalPlugin } from "../main.js";
+import { formatProfileLong } from "../i18n-strings.js";
 import { noop } from "lodash-es";
 
 export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry | null> {
@@ -15,22 +16,15 @@ export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry
     protected readonly cwd?: string,
   ) {
     super(context.app);
-    const {
-        language: { value: i18n },
-      } = context,
-      instructions = getDefaultSuggestModalInstructions(context);
+    const instructions = getDefaultSuggestModalInstructions(context);
     this.setInstructions([
       ...instructions.slice(0, -1),
       {
         get command(): string {
-          return i18n.t(
-            "components.select-profile.instructions.edit-before-use",
-          );
+          return "ctrl ↵";
         },
         get purpose(): string {
-          return i18n.t(
-            "components.select-profile.instructions.edit-before-use-purpose",
-          );
+          return "to edit before use";
         },
       },
       ...instructions.slice(-1),
@@ -67,25 +61,14 @@ export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry
   }
 
   public override getItemText(item: Settings.Profile.Entry | null): string {
-    const {
-      context: {
-        language: { value: i18n },
-      },
-    } = this;
     if (item === null) {
-      return i18n.t("components.select-profile.item-text-temporary");
+      return "(Temporary profile)";
     }
-    return i18n.t(
-      `components.select-profile.item-text-${
-        Settings.Profile.isCompatible(item[1], Platform.CURRENT)
-          ? ""
-          : "incompatible"
-      }`,
-      {
-        info: Settings.Profile.info(item),
-        interpolation: { escapeValue: false },
-      },
-    );
+    const info = Settings.Profile.info(item);
+    if (Settings.Profile.isCompatible(item[1], Platform.CURRENT)) {
+      return formatProfileLong(info);
+    }
+    return "(Incompatible) " + formatProfileLong(info);
   }
 
   public override onChooseItem(
