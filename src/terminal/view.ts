@@ -35,7 +35,6 @@ import {
   printMalformedData,
   randomNotIn,
   readStateCollaboratively,
-  resetButton,
   saveFileAs,
   svelteState,
   updateView,
@@ -137,7 +136,6 @@ export class EditTerminalModal extends DialogModal {
           },
         },
         ui,
-        protostate,
         state,
       } = this,
       { element: listEl, remover: listElRemover } = useSettings(this.contentEl);
@@ -182,20 +180,6 @@ export class EditTerminalModal extends DialogModal {
                     : null;
                 this.postMutate();
               }),
-          )
-          .addExtraButton(
-            resetButton(
-              i18n.t(
-                "asset:components.terminal.edit-modal.working-directory-icon",
-              ),
-              i18n.t("components.terminal.edit-modal.reset"),
-              () => {
-                state.cwd = protostate.cwd;
-              },
-              () => {
-                this.postMutate();
-              },
-            ),
           );
       })
       .newSetting(listEl, (setting) => {
@@ -268,19 +252,6 @@ export class EditTerminalModal extends DialogModal {
                   this.postMutate();
                 }).open();
               }),
-          )
-          .addExtraButton(
-            resetButton(
-              i18n.t("asset:components.terminal.edit-modal.profile-icon"),
-              i18n.t("components.terminal.edit-modal.reset"),
-              () => {
-                this.#profile = null;
-                state.profile = cloneAsWritable(protostate.profile);
-              },
-              () => {
-                this.postMutate();
-              },
-            ),
           );
       });
   }
