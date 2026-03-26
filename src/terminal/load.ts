@@ -22,6 +22,12 @@ function newInstanceBehaviorCommandSuffix(
   return behavior.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
+function hasCompatibleProfiles(profiles: Settings.Profiles): boolean {
+  return Object.values(profiles).some((profile) =>
+    Settings.Profile.isCompatible(profile, Platform.CURRENT),
+  );
+}
+
 export function loadTerminal(context: TerminalPlugin): void {
   TerminalView.load(context);
   const
@@ -79,7 +85,16 @@ export function loadTerminal(context: TerminalPlugin): void {
       }
     }
     if (!checking) {
-      new SelectProfileModal(context, adapter?.getBasePath()).open();
+      if (!hasCompatibleProfiles(settings.value.profiles)) {
+        notice2(
+          () =>
+            context.language.value.t("notices.no-compatible-profiles"),
+          context.settings.value.errorNoticeTimeout,
+          context,
+        );
+      } else {
+        new SelectProfileModal(context, adapter?.getBasePath()).open();
+      }
     }
     return true;
   };
@@ -91,12 +106,18 @@ export function loadTerminal(context: TerminalPlugin): void {
     if (!adapter) {
       return false;
     }
-    const activeFile = workspace.getActiveFile();
-    const folder = activeFile?.parent;
-    if (!activeFile || !folder) {
-      return false;
+    const basePath = adapter.getBasePath();
+    let cwdPath: string;
+    if (settings.value.openInRootFolder) {
+      cwdPath = basePath;
+    } else {
+      const activeFile = workspace.getActiveFile();
+      const folder = activeFile?.parent;
+      if (!activeFile || !folder) {
+        return false;
+      }
+      cwdPath = adapter.getFullPath(folder.path);
     }
-    const cwdPath = adapter.getFullPath(folder.path);
     const { defaultProfile, profiles } = settings.value;
     const spawnOpts =
       newInstanceBehavior !== undefined ? { newInstanceBehavior } : {};
@@ -110,7 +131,16 @@ export function loadTerminal(context: TerminalPlugin): void {
       }
     }
     if (!checking) {
-      new SelectProfileModal(context, cwdPath).open();
+      if (!hasCompatibleProfiles(settings.value.profiles)) {
+        notice2(
+          () =>
+            context.language.value.t("notices.no-compatible-profiles"),
+          context.settings.value.errorNoticeTimeout,
+          context,
+        );
+      } else {
+        new SelectProfileModal(context, cwdPath).open();
+      }
     }
     return true;
   };

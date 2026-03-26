@@ -84,6 +84,7 @@ export interface Settings
   readonly createInstanceNearExistingOnes: boolean;
   readonly focusOnNewInstance: boolean;
   readonly pinNewInstance: boolean;
+  readonly openInRootFolder: boolean;
 
   readonly hideStatusBar: Settings.HideStatusBarOption;
   readonly addContextMenu: boolean;
@@ -121,6 +122,7 @@ export namespace Settings {
     newInstanceBehavior: "newHorizontalSplit",
     addNewInstanceBehaviorCommands: true,
     pinNewInstance: true,
+    openInRootFolder: false,
     preferredRenderer: "webgl",
     profiles: Object.fromEntries(
       (
@@ -1204,6 +1206,9 @@ export namespace Settings {
         ["boolean"],
       ),
       pinNewInstance: fixTyped(DEFAULT, unc, "pinNewInstance", ["boolean"]),
+      openInRootFolder: fixTyped(DEFAULT, unc, "openInRootFolder", [
+        "boolean",
+      ]),
       preferredRenderer: fixInSet(
         DEFAULT,
         unc,

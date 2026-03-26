@@ -220,6 +220,25 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
               },
             ),
           );
+      })
+      .newSetting(containerEl, (setting) => {
+        setting
+          .setName("Open in root folder")
+          .setDesc(
+            "Open in vault root as the working directory instead of the current file's folder.",
+          )
+          .addToggle(
+            linkSetting(
+              () => settings.value.openInRootFolder,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.openInRootFolder = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
       });
 
     const HIDE_STATUS_BAR_OPTION_NAMES: Record<string, string> = {

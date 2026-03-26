@@ -10,7 +10,7 @@ import type { TerminalPlugin } from "../main.js";
 import { formatProfileLong } from "../i18n-strings.js";
 import { noop } from "lodash-es";
 
-export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry | null> {
+export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry> {
   public constructor(
     protected readonly context: TerminalPlugin,
     protected readonly cwd?: string,
@@ -45,25 +45,19 @@ export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry
     });
   }
 
-  public override getItems(): (Settings.Profile.Entry | null)[] {
-    return [
-      null,
-      ...Object.entries(this.context.settings.value.profiles)
-        /*
+  public override getItems(): Settings.Profile.Entry[] {
+    return Object.entries(this.context.settings.value.profiles)
+      /*
 				Platform filtering: Filter profiles in the selection modal to
 				show only profiles compatible with the current platform
 				(macOS/Windows/Linux), improving UX by hiding incompatible options.
 				*/
-        .filter(([, profile]) =>
-          Settings.Profile.isCompatible(profile, Platform.CURRENT),
-        ),
-    ];
+      .filter(([, profile]) =>
+        Settings.Profile.isCompatible(profile, Platform.CURRENT),
+      );
   }
 
-  public override getItemText(item: Settings.Profile.Entry | null): string {
-    if (item === null) {
-      return "(Temporary profile)";
-    }
+  public override getItemText(item: Settings.Profile.Entry): string {
     const info = Settings.Profile.info(item);
     if (Settings.Profile.isCompatible(item[1], Platform.CURRENT)) {
       return formatProfileLong(info);
@@ -72,13 +66,13 @@ export class SelectProfileModal extends FuzzySuggestModal<Settings.Profile.Entry
   }
 
   public override onChooseItem(
-    entry: Settings.Profile.Entry | null,
+    entry: Settings.Profile.Entry,
     evt: KeyboardEvent | MouseEvent,
   ): void {
     const { context: plugin, cwd } = this;
-    spawnTerminal(plugin, entry?.[1] ?? Settings.Profile.DEFAULTS[""], {
+    spawnTerminal(plugin, entry[1], {
       cwd,
-      edit: entry === null || evt.getModifierState("Control"),
+      edit: evt.getModifierState("Control"),
     });
   }
 }
