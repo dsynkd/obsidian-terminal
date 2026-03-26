@@ -14,7 +14,7 @@
     "open-terminal-default-profile": "$t(generic.open, capitalize) $t(generic.terminal): $t(settings.default-profile)",
     "open-terminal-root": "$t(generic.open, capitalize) $t(generic.root-directory) in $t(generic.terminal): $t(generic.profile-types.{{type}}, capitalize)",
     "toggle-focus-on-last-terminal": "$t(generic.toggle, capitalize) $t(generic.focus) on last $t(generic.terminal)",
-    "toggle-terminal-visibility": "Toggle terminal visibility",
+    "toggle-terminal-visibility": "Toggle terminal",
     "unfocus-terminal": "$t(generic.unfocus, capitalize) $t(generic.terminal)"
   },
   "components": {

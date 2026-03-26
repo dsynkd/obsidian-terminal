@@ -153,7 +153,7 @@ export function loadTerminal(context: TerminalPlugin): void {
     () => openDefaultProfile(),
   );
 
-  addCommand(context, () => "Toggle terminal visibility", {
+  addCommand(context, () => "Toggle terminal", {
     checkCallback(checking) {
       const doc = context.app.workspace.containerEl.ownerDocument;
       const tabs = Array.from(
@@ -162,7 +162,10 @@ export function loadTerminal(context: TerminalPlugin): void {
         ),
       );
       if (tabs.length === 0) {
-        return false;
+        return openDefaultProfileInActiveFileFolder(
+          checking,
+          "newHorizontalSplit",
+        );
       }
       if (!checking) {
         for (const tab of tabs) {
