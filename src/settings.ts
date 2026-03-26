@@ -121,17 +121,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
         );
     });
 
-    const NEW_INSTANCE_BEHAVIOR_NAMES: Record<string, string> = {
-      newHorizontalSplit: "New horizontal split",
-      newLeftSplit: "New left split",
-      newLeftTab: "New left tab",
-      newRightSplit: "New right split",
-      newRightTab: "New right tab",
-      newTab: "New tab",
-      newVerticalSplit: "New vertical split",
-      newWindow: "New window",
-      replaceTab: "Replace tab",
-    };
     this.newSectionWidget(() => "Instancing");
     ui.newSetting(containerEl, (setting) => {
       setting
@@ -153,7 +142,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                   Object.fromEntries(
                     Settings.NEW_INSTANCE_BEHAVIORS.map((value) => [
                       value,
-                      NEW_INSTANCE_BEHAVIOR_NAMES[value] ?? value,
+                      Settings.NEW_INSTANCE_BEHAVIOR_LABELS[value],
                     ]),
                   ),
                 );
@@ -162,6 +151,25 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     })
+      .newSetting(containerEl, (setting) => {
+        setting
+          .setName("Add commands")
+          .setDesc(
+            'Add a command palette entry for each new instance behavior.',
+          )
+          .addToggle(
+            linkSetting(
+              () => settings.value.addNewInstanceBehaviorCommands,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.addNewInstanceBehaviorCommands = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
+      })
       .newSetting(containerEl, (setting) => {
         setting
           .setName("Create instance near existing ones")

@@ -16,6 +16,12 @@ import type { TerminalPlugin } from "../main.js";
 import { TerminalView } from "./view.js";
 import { capitalize, profileTypeName } from "../i18n-strings.js";
 
+function newInstanceBehaviorCommandSuffix(
+  behavior: Settings.NewInstanceBehavior,
+): string {
+  return behavior.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
 export function loadTerminal(context: TerminalPlugin): void {
   TerminalView.load(context);
   const
@@ -78,7 +84,10 @@ export function loadTerminal(context: TerminalPlugin): void {
     return true;
   };
 
-  const openDefaultProfileInActiveFileFolder = (checking?: boolean): boolean => {
+  const openDefaultProfileInActiveFileFolder = (
+    checking?: boolean,
+    newInstanceBehavior?: Settings.NewInstanceBehavior,
+  ): boolean => {
     if (!adapter) {
       return false;
     }
@@ -89,11 +98,13 @@ export function loadTerminal(context: TerminalPlugin): void {
     }
     const cwdPath = adapter.getFullPath(folder.path);
     const { defaultProfile, profiles } = settings.value;
+    const spawnOpts =
+      newInstanceBehavior !== undefined ? { newInstanceBehavior } : {};
     if (defaultProfile && profiles[defaultProfile]) {
       const profile = profiles[defaultProfile];
       if (Settings.Profile.isCompatible(profile, Platform.CURRENT)) {
         if (!checking) {
-          spawnTerminal(context, profile, { cwd: cwdPath });
+          spawnTerminal(context, profile, { cwd: cwdPath, ...spawnOpts });
         }
         return true;
       }
@@ -172,23 +183,42 @@ export function loadTerminal(context: TerminalPlugin): void {
 
   /* Always register command for interop with other plugins */
 
-  addCommand(context, () => "Open terminal: Default profile", {
-    checkCallback(checking) {
-      return openDefaultProfile(checking);
-    },
-    icon: "terminal-square",
-    id: "open-terminal.default",
-  });
-
   addCommand(
     context,
-    () => "Open terminal in current folder",
+    () => "Open terminal",
     {
       checkCallback(checking) {
+        if (
+          checking &&
+          context.settings.value.addNewInstanceBehaviorCommands
+        ) {
+          return false;
+        }
         return openDefaultProfileInActiveFileFolder(checking);
       },
       icon: "terminal-square",
       id: "open-terminal.current-folder",
     },
   );
+
+  for (const behavior of Settings.NEW_INSTANCE_BEHAVIORS) {
+    addCommand(
+      context,
+      () =>
+        `Open terminal: ${Settings.NEW_INSTANCE_BEHAVIOR_LABELS[behavior]}`,
+      {
+        checkCallback(checking) {
+          if (
+            checking &&
+            !context.settings.value.addNewInstanceBehaviorCommands
+          ) {
+            return false;
+          }
+          return openDefaultProfileInActiveFileFolder(checking, behavior);
+        },
+        icon: "terminal-square",
+        id: `open-terminal.current-folder.${newInstanceBehaviorCommandSuffix(behavior)}`,
+      },
+    );
+  }
 }

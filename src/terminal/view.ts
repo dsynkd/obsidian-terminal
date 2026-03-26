@@ -1124,6 +1124,9 @@ export namespace TerminalView {
   export function getLeaf(
     context: TerminalPlugin,
     leaf?: WorkspaceLeaf,
+    leafOptions?: {
+      readonly newInstanceBehavior?: Settings.NewInstanceBehavior;
+    },
   ): WorkspaceLeaf {
     const {
         app: {
@@ -1132,6 +1135,8 @@ export namespace TerminalView {
         },
         settings,
       } = context,
+      behavior =
+        leafOptions?.newInstanceBehavior ?? settings.value.newInstanceBehavior,
       newLeaf = ((): WorkspaceLeaf => {
         if (settings.value.createInstanceNearExistingOnes) {
           const existingLeaves = workspace.getLeavesOfType(
@@ -1150,7 +1155,7 @@ export namespace TerminalView {
             return workspace.getLeaf("tab");
           }
         }
-        switch (settings.value.newInstanceBehavior) {
+        switch (behavior) {
           case "replaceTab":
             return workspace.getLeaf();
           case "newTab":
@@ -1180,8 +1185,11 @@ export namespace TerminalView {
     state: State,
     leaf?: WorkspaceLeaf,
     type: string = TerminalView.type.namespaced(context),
+    leafOptions?: {
+      readonly newInstanceBehavior?: Settings.NewInstanceBehavior;
+    },
   ): Promise<void> {
-    await (leaf ?? getLeaf(context)).setViewState({
+    await (leaf ?? getLeaf(context, undefined, leafOptions)).setViewState({
       active: true,
       state: newCollaborativeState(
         context,

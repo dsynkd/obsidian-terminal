@@ -89,6 +89,7 @@ export function spawnTerminal(
   options: {
     readonly cwd?: string | undefined;
     readonly edit?: boolean | undefined;
+    readonly newInstanceBehavior?: Settings.NewInstanceBehavior | undefined;
   } = {},
 ): void {
   const state: TerminalView.State = {
@@ -97,15 +98,19 @@ export function spawnTerminal(
     profile,
     serial: null,
   };
+  const leafOpts =
+    options.newInstanceBehavior !== undefined
+      ? { newInstanceBehavior: options.newInstanceBehavior }
+      : undefined;
   if (options.edit ?? false) {
     new EditTerminalModal(context, state, async (state2) =>
-      TerminalView.spawn(context, state2),
+      TerminalView.spawn(context, state2, undefined, undefined, leafOpts),
     ).open();
     return;
   }
   (async (): Promise<void> => {
     try {
-      await TerminalView.spawn(context, state);
+      await TerminalView.spawn(context, state, undefined, undefined, leafOpts);
     } catch (error) {
       self.console.error(error);
     }

@@ -80,6 +80,7 @@ export interface Settings
   readonly terminalOptions: Settings.Profile.TerminalOptions;
 
   readonly newInstanceBehavior: Settings.NewInstanceBehavior;
+  readonly addNewInstanceBehaviorCommands: boolean;
   readonly createInstanceNearExistingOnes: boolean;
   readonly focusOnNewInstance: boolean;
   readonly pinNewInstance: boolean;
@@ -116,6 +117,7 @@ export namespace Settings {
     language: "",
     macOSOptionKeyPassthrough: true,
     newInstanceBehavior: "newHorizontalSplit",
+    addNewInstanceBehaviorCommands: true,
     pinNewInstance: true,
     preferredRenderer: "webgl",
     profiles: Object.fromEntries(
@@ -152,6 +154,19 @@ export namespace Settings {
     "newWindow",
   ]);
   export type NewInstanceBehavior = (typeof NEW_INSTANCE_BEHAVIORS)[number];
+  export const NEW_INSTANCE_BEHAVIOR_LABELS: Readonly<
+    Record<NewInstanceBehavior, string>
+  > = deepFreeze({
+    replaceTab: "Replace tab",
+    newTab: "New tab",
+    newLeftTab: "New left tab",
+    newLeftSplit: "New left split",
+    newRightTab: "New right tab",
+    newRightSplit: "New right split",
+    newHorizontalSplit: "New horizontal split",
+    newVerticalSplit: "New vertical split",
+    newWindow: "New window",
+  });
 
   export const HIDE_STATUS_BAR_OPTIONS = deepFreeze([
     "never",
@@ -1178,6 +1193,12 @@ export namespace Settings {
         unc,
         "newInstanceBehavior",
         NEW_INSTANCE_BEHAVIORS,
+      ),
+      addNewInstanceBehaviorCommands: fixTyped(
+        DEFAULT,
+        unc,
+        "addNewInstanceBehaviorCommands",
+        ["boolean"],
       ),
       pinNewInstance: fixTyped(DEFAULT, unc, "pinNewInstance", ["boolean"]),
       preferredRenderer: fixInSet(
