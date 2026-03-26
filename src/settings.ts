@@ -34,14 +34,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       },
       ui,
     } = this;
-    this.newLanguageWidget(
-      Settings.DEFAULTABLE_LANGUAGES,
-      (language) =>
-        language
-          ? i18n.t(`language:${language}`)
-          : i18n.t("settings.language-default"),
-      Settings.DEFAULT,
-    );
     ui.newSetting(containerEl, (setting) => {
       setting
         .setName(i18n.t("settings.profiles"))
