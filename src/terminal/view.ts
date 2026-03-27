@@ -48,6 +48,7 @@ import {
   CustomKeyEventHandlerAddon,
   RendererAddon,
   RightClickActionAddon,
+  tryExecuteObsidianShortcutForKeyEvent,
 } from "./emulator-addons.js";
 import {
   FileSystemAdapter,
@@ -912,6 +913,9 @@ export class TerminalView extends ItemView {
                   Platform.CURRENT === "darwin"
                     ? () => settings.value.macOSOptionKeyPassthrough
                     : constant(false),
+                  (event) =>
+                    settings.value.bypassObsidianShortcuts &&
+                    tryExecuteObsidianShortcutForKeyEvent(this.app, event),
                 ),
                 disposer: new DisposerAddon(
                   () => {

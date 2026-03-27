@@ -352,6 +352,25 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         setting
+          .setName("macOS: Command key passthrough")
+          .setDesc(
+            "Allow the following key combinations to pass through to Obsidian: ⌘p ⌘, ⌘n ⌘g ⌘o",
+          )
+          .addToggle(
+            linkSetting(
+              () => settings.value.bypassObsidianShortcuts,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.bypassObsidianShortcuts = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
+      })
+      .newSetting(containerEl, (setting) => {
+        setting
           .setName("Preferred renderer")
           .addDropdown(
             linkSetting(

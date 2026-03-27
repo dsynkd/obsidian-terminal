@@ -92,6 +92,8 @@ export interface Settings
   readonly exposeInternalModules: boolean;
   readonly interceptLogging: boolean;
   readonly macOSOptionKeyPassthrough: boolean;
+  /** When true, typical Command+… Obsidian shortcuts are not sent to the shell (macOS only). */
+  readonly bypassObsidianShortcuts: boolean;
   readonly preferredRenderer: Settings.PreferredRendererOption;
 }
 export namespace Settings {
@@ -119,6 +121,7 @@ export namespace Settings {
     interceptLogging: true,
     language: "",
     macOSOptionKeyPassthrough: true,
+    bypassObsidianShortcuts: false,
     newInstanceBehavior: "newHorizontalSplit",
     addNewInstanceBehaviorCommands: true,
     pinNewInstance: true,
@@ -1191,6 +1194,12 @@ export namespace Settings {
         DEFAULT,
         unc,
         "macOSOptionKeyPassthrough",
+        ["boolean"],
+      ),
+      bypassObsidianShortcuts: fixTyped(
+        DEFAULT,
+        unc,
+        "bypassObsidianShortcuts",
         ["boolean"],
       ),
       newInstanceBehavior: fixInSet(
