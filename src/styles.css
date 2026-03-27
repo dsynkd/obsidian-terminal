@@ -1,3 +1,24 @@
 @import "@polyipseity/obsidian-plugin-library/style";
 @import "./terminal/emulator.css";
 @import "./terminal/view.css";
+
+.terminal-pass-through-hotkey-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--size-4-3);
+  margin-top: var(--size-4-2);
+  width: 100%;
+}
+
+.terminal-pass-through-hotkey-grid > .setting-item {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: var(--size-4-2) var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background-color: var(--background-secondary);
+}
+
+.terminal-pass-through-hotkey-grid > .setting-item:only-child {
+  grid-column: 1 / -1;
+}

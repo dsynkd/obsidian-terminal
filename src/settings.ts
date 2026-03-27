@@ -40,14 +40,18 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       passThroughRowRoots.length = 0;
 
       const hotkeys = settings.value.obsidianPassThroughHotkeys;
+      const gridEl = createChildElement(containerEl, "div", (el) => {
+        el.classList.add("terminal-pass-through-hotkey-grid");
+      });
+      passThroughRowRoots.push(gridEl);
+
       if (hotkeys.length === 0) {
-        const emptyRow = new Setting(containerEl).setDesc(
+        new Setting(gridEl).setDesc(
           "No pass-through chords. Use Add hotkey above; new installs start with ⌘P, ⌘O, ⌘N, ⌘G, ⌘,.",
         );
-        passThroughRowRoots.push(emptyRow.settingEl);
       }
       hotkeys.forEach((hk, index) => {
-        const row = new Setting(containerEl)
+        new Setting(gridEl)
           .setName(formatHotkeyLabel(hk as Hotkey))
           .addExtraButton((button) =>
             button
@@ -63,7 +67,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                 this.postMutate();
               }),
           );
-        passThroughRowRoots.push(row.settingEl);
       });
     };
 
@@ -424,7 +427,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName("Obsidian hotkey pass-through")
+          .setName("Hotkey pass-through")
           .setDesc(
             "Allow key combinations to pass through to Obsidian as hotkeys.",
           )
