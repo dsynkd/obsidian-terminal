@@ -48,8 +48,8 @@ import {
   CustomKeyEventHandlerAddon,
   RendererAddon,
   RightClickActionAddon,
-  tryExecuteObsidianShortcutForKeyEvent,
 } from "./emulator-addons.js";
+import { tryExecuteObsidianShortcutForKeyEvent } from "./obsidian-pass-through.js";
 import {
   FileSystemAdapter,
   ItemView,
@@ -914,8 +914,10 @@ export class TerminalView extends ItemView {
                     ? () => settings.value.macOSOptionKeyPassthrough
                     : constant(false),
                   (event) =>
-                    settings.value.bypassObsidianShortcuts &&
-                    tryExecuteObsidianShortcutForKeyEvent(this.app, event),
+                    tryExecuteObsidianShortcutForKeyEvent(this.app, event, {
+                      passThroughHotkeys:
+                        settings.value.obsidianPassThroughHotkeys,
+                    }),
                 ),
                 disposer: new DisposerAddon(
                   () => {

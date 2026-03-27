@@ -1,17 +1,21 @@
 import {
   AdvancedSettingTab,
   Platform,
-  cloneAsWritable,
   createChildElement,
   createDocumentFragment,
   linkSetting,
   setTextToEnum,
-  DOMClasses,
 } from "@polyipseity/obsidian-plugin-library";
+import { Modal, Setting, type App, type Hotkey } from "obsidian";
 import { ProfileListModal, TerminalOptionsModal } from "./modals.js";
 import { Settings } from "./settings-data.js";
 import { RENDERER_NAMES, formatProfileShort, listDescription } from "./i18n-strings.js";
 import type { TerminalPlugin } from "./main.js";
+import {
+  formatHotkeyLabel,
+  hotkeySignature,
+  keyboardEventToHotkey,
+} from "./terminal/obsidian-pass-through.js";
 import { size } from "lodash-es";
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
@@ -27,6 +31,42 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       context: { settings },
       ui,
     } = this;
+
+    const passThroughRowRoots: HTMLElement[] = [];
+    const refreshPassThroughList = (): void => {
+      for (const el of passThroughRowRoots) {
+        el.remove();
+      }
+      passThroughRowRoots.length = 0;
+
+      const hotkeys = settings.value.obsidianPassThroughHotkeys;
+      if (hotkeys.length === 0) {
+        const emptyRow = new Setting(containerEl).setDesc(
+          "No pass-through chords. Use Add hotkey above; new installs start with ⌘P, ⌘O, ⌘N, ⌘G, ⌘,.",
+        );
+        passThroughRowRoots.push(emptyRow.settingEl);
+      }
+      hotkeys.forEach((hk, index) => {
+        const row = new Setting(containerEl)
+          .setName(formatHotkeyLabel(hk as Hotkey))
+          .addExtraButton((button) =>
+            button
+              .setIcon("trash")
+              .setTooltip("Remove")
+              .onClick(async () => {
+                await settings.mutate((settingsM) => {
+                  settingsM.obsidianPassThroughHotkeys =
+                    settingsM.obsidianPassThroughHotkeys.filter(
+                      (_h, i) => i !== index,
+                    );
+                });
+                this.postMutate();
+              }),
+          );
+        passThroughRowRoots.push(row.settingEl);
+      });
+    };
+
     ui.newSetting(containerEl, (setting) => {
       setting
         .setName("Profiles")
@@ -333,42 +373,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
-      .newSetting(containerEl, (setting) => {
-        setting
-          .setName("macOS: Option key passthrough")
-          .setDesc("Allow Option+key combinations to reach the terminal for typing special characters (e.g., @ on Scandinavian/German keyboards).")
-          .addToggle(
-            linkSetting(
-              () => settings.value.macOSOptionKeyPassthrough,
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  settingsM.macOSOptionKeyPassthrough = value;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
-      .newSetting(containerEl, (setting) => {
-        setting
-          .setName("macOS: Command key passthrough")
-          .setDesc(
-            "Allow the following key combinations to pass through to Obsidian: ⌘p ⌘, ⌘n ⌘g ⌘o",
-          )
-          .addToggle(
-            linkSetting(
-              () => settings.value.bypassObsidianShortcuts,
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  settingsM.bypassObsidianShortcuts = value;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
+      ui
       .newSetting(containerEl, (setting) => {
         setting
           .setName("Preferred renderer")
@@ -399,11 +404,101 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
               },
             ),
           );
+      })
+      .newSetting(containerEl, (setting) => {
+        setting
+          .setName("macOS: Option key passthrough")
+          .setDesc("Allow Option+key combinations to reach the terminal for typing special characters (e.g., @ on Scandinavian/German keyboards).")
+          .addToggle(
+            linkSetting(
+              () => settings.value.macOSOptionKeyPassthrough,
+              async (value) =>
+                settings.mutate((settingsM) => {
+                  settingsM.macOSOptionKeyPassthrough = value;
+                }),
+              () => {
+                this.postMutate();
+              },
+            ),
+          );
+      })
+      .newSetting(containerEl, (setting) => {
+        setting
+          .setName("Obsidian hotkey pass-through")
+          .setDesc(
+            "Allow key combinations to pass through to Obsidian as hotkeys.",
+          )
+          .addButton((button) =>
+            button
+              .setIcon("plus")
+              .setCta()
+              .onClick(() => {
+                const modal = new PassThroughHotkeyCaptureModal(
+                  context.app,
+                  (captured) => {
+                    const sig = hotkeySignature(captured);
+                    void settings
+                      .mutate((settingsM) => {
+                        const existing = settingsM.obsidianPassThroughHotkeys;
+                        if (existing.some((h) => hotkeySignature(h) === sig)) {
+                          return;
+                        }
+                        settingsM.obsidianPassThroughHotkeys = [
+                          ...existing,
+                          captured,
+                        ];
+                      })
+                      .then(() => {
+                        this.postMutate();
+                      });
+                  },
+                );
+                modal.open();
+              }),
+          );
+        refreshPassThroughList();
       });
   }
 
   protected override snapshot0(): Partial<Settings> {
-    return Settings.persistent(this.context.settings.value);
+    return Settings.persistent(
+      this.context.settings.value,
+    ) as Partial<Settings>;
+  }
+}
+
+class PassThroughHotkeyCaptureModal extends Modal {
+  readonly #onCapture: (h: Hotkey) => void;
+  #keydown: ((e: KeyboardEvent) => void) | null = null;
+
+  public constructor(app: App, onCapture: (h: Hotkey) => void) {
+    super(app);
+    this.#onCapture = onCapture;
+  }
+
+  public onOpen(): void {
+    const { contentEl } = this;
+    contentEl.replaceChildren();
+    createChildElement(contentEl, "p", (el) => {
+      el.textContent =
+        "Press the key combination to forward to Obsidian. It should match a chord in Settings → Hotkeys.";
+    });
+    this.#keydown = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const h = keyboardEventToHotkey(e);
+      if (h) {
+        this.#onCapture(h);
+        this.close();
+      }
+    };
+    window.addEventListener("keydown", this.#keydown, true);
+  }
+
+  public onClose(): void {
+    if (this.#keydown) {
+      window.removeEventListener("keydown", this.#keydown, true);
+    }
   }
 }
 

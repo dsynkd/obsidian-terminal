@@ -9,7 +9,6 @@ import {
   replaceAllRegex,
   revealPrivate,
 } from "@polyipseity/obsidian-plugin-library";
-import type { App, Command } from "obsidian";
 import type { ITerminalAddon, ITheme, Terminal } from "@xterm/xterm";
 import { constant, isUndefined } from "lodash-es";
 import type { CanvasAddon } from "@xterm/addon-canvas";
@@ -17,131 +16,6 @@ import type { WebglAddon } from "@xterm/addon-webgl";
 import { around } from "monkey-around";
 import { noop } from "ts-essentials";
 import { ESCAPE_SEQUENCE_INTRODUCER as ESC } from "./utils.js";
-
-/**
- * Single-character ⌘ shortcuts (lowercase) forwarded to Obsidian when bypass is on.
- * Excludes c/v/x/a so terminal copy, paste, cut, and select-all stay in xterm.
- */
-const BYPASS_OBSIDIAN_CMD_LETTER_KEYS = deepFreeze(
-  new Set(["p", "o", "n", "g"]),
-);
-
-function keyboardEventShouldBypassToObsidian(event: KeyboardEvent): boolean {
-  if (Platform.CURRENT !== "darwin") {
-    return false;
-  }
-  if (event.type !== "keydown" || event.repeat) {
-    return false;
-  }
-  if (!event.metaKey || event.ctrlKey || event.altKey) {
-    return false;
-  }
-  if (event.shiftKey) {
-    const terminalCombo = event.key.toLowerCase();
-    if (terminalCombo === "k" || terminalCombo === "w" || terminalCombo === "f") {
-      return false;
-    }
-  }
-  if (event.key === ",") {
-    return true;
-  }
-  return (
-    event.key.length === 1 &&
-    BYPASS_OBSIDIAN_CMD_LETTER_KEYS.has(event.key.toLowerCase())
-  );
-}
-
-type ObsidianCommandsApi = {
-  readonly findCommand?: (id: string) => Command | undefined;
-  readonly executeCommand?: (command: Command) => boolean;
-  readonly executeCommandById?: (id: string) => boolean;
-  readonly listCommands?: () => readonly Command[];
-};
-
-function getObsidianCommands(app: App): ObsidianCommandsApi | null {
-  const c = (app as unknown as { commands?: ObsidianCommandsApi }).commands;
-  return c ?? null;
-}
-
-function tryExecuteCommandIds(app: App, ids: readonly string[]): boolean {
-  const commands = getObsidianCommands(app);
-  if (!commands) {
-    return false;
-  }
-  if (typeof commands.executeCommandById === "function") {
-    for (const id of ids) {
-      try {
-        if (commands.executeCommandById(id)) {
-          return true;
-        }
-      } catch {
-        /* command missing or internal error */
-      }
-    }
-  }
-  if (commands.findCommand && commands.executeCommand) {
-    for (const id of ids) {
-      const cmd = commands.findCommand(id);
-      if (cmd && commands.executeCommand(cmd)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-export function tryExecuteObsidianShortcutForKeyEvent(
-  app: App,
-  event: KeyboardEvent,
-): boolean {
-  if (!keyboardEventShouldBypassToObsidian(event)) {
-    return false;
-  }
-
-  const key = event.key.toLowerCase();
-  let ids: readonly string[] = [];
-  if (event.key === ",") {
-    ids = ["app:open-settings", "settings:open"];
-  } else if (key === "p") {
-    ids = [
-      "command-palette:open-command-palette",
-      "command-palette:open",
-      "app:open-command-palette",
-    ];
-  } else if (key === "o") {
-    ids = ["switcher:open", "quick-switcher:open"];
-  } else if (key === "n") {
-    ids = ["workspace:new-note", "file-explorer:new-note"];
-  } else if (key === "g") {
-    ids = ["graph:open"];
-  } else {
-    return false;
-  }
-
-  let ok = tryExecuteCommandIds(app, ids);
-  if (!ok && key === "p") {
-    const commands = getObsidianCommands(app);
-    if (commands?.listCommands && commands.executeCommand) {
-      for (const cmd of commands.listCommands()) {
-        if (
-          /command\s*palette/i.test(cmd.name) &&
-          commands.executeCommand(cmd)
-        ) {
-          ok = true;
-          break;
-        }
-      }
-    }
-  }
-
-  if (!ok) {
-    return false;
-  }
-
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  return true;
-}
 
 export class DisposerAddon extends Functions implements ITerminalAddon {
   public constructor(...args: readonly (() => void)[]) {

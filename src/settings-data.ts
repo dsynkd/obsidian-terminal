@@ -35,6 +35,7 @@ import type {
   DeepWritable,
   MarkOptional,
 } from "ts-essentials";
+import type { Hotkey } from "obsidian";
 import type {
   FontWeight,
   ILinkHandler,
@@ -51,6 +52,10 @@ import {
 import { isNil, isUndefined, omitBy } from "lodash-es";
 import { DEFAULT_SUCCESS_EXIT_CODES } from "./magic.js";
 import { PluginLocales } from "../assets/locales.js";
+import {
+  DEFAULT_OBSIDIAN_PASS_THROUGH_HOTKEYS,
+  fixObsidianPassThroughHotkeys,
+} from "./terminal/obsidian-pass-through.js";
 import { Pseudoterminal } from "./terminal/pseudoterminal.js";
 
 export interface LocalSettings extends PluginContext.LocalSettings {
@@ -92,8 +97,10 @@ export interface Settings
   readonly exposeInternalModules: boolean;
   readonly interceptLogging: boolean;
   readonly macOSOptionKeyPassthrough: boolean;
-  /** When true, typical Command+… Obsidian shortcuts are not sent to the shell (macOS only). */
-  readonly bypassObsidianShortcuts: boolean;
+  /**
+   * Chords that forward to Obsidian (same command as in Settings → Hotkeys). Defaults to ⌘P, ⌘O, ⌘N, ⌘G, ⌘,.
+   */
+  readonly obsidianPassThroughHotkeys: readonly Hotkey[];
   readonly preferredRenderer: Settings.PreferredRendererOption;
 }
 export namespace Settings {
@@ -121,7 +128,12 @@ export namespace Settings {
     interceptLogging: true,
     language: "",
     macOSOptionKeyPassthrough: true,
-    bypassObsidianShortcuts: false,
+    obsidianPassThroughHotkeys: DEFAULT_OBSIDIAN_PASS_THROUGH_HOTKEYS.map(
+      (h) => ({
+        modifiers: [...h.modifiers],
+        key: h.key,
+      }),
+    ),
     newInstanceBehavior: "newHorizontalSplit",
     addNewInstanceBehaviorCommands: true,
     pinNewInstance: true,
@@ -1196,11 +1208,8 @@ export namespace Settings {
         "macOSOptionKeyPassthrough",
         ["boolean"],
       ),
-      bypassObsidianShortcuts: fixTyped(
-        DEFAULT,
-        unc,
-        "bypassObsidianShortcuts",
-        ["boolean"],
+      obsidianPassThroughHotkeys: fixObsidianPassThroughHotkeys(
+        unc["obsidianPassThroughHotkeys"],
       ),
       newInstanceBehavior: fixInSet(
         DEFAULT,
