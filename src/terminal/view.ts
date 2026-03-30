@@ -975,14 +975,8 @@ export class TerminalView extends ItemView {
             .then(async (pty0) => pty0.onExit)
             .then(
               (code) => {
-                const successCodes =
-                    profile.type === "invalid"
-                      ? DEFAULT_SUCCESS_EXIT_CODES
-                      : profile.successExitCodes,
-                  isSuccess = successCodes.includes(code.toString());
-                if (isSuccess) {
-                  leaf.detach();
-                }
+                console.log(`Terminal exited with code ${code}`);
+                leaf.detach();
               },
               (error: unknown) => {
                 printError(
