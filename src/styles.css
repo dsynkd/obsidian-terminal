@@ -22,3 +22,62 @@
 .terminal-pass-through-hotkey-grid > .setting-item:only-child {
   grid-column: 1 / -1;
 }
+
+/* Terminal options: checkerboard when theme color override is unset */
+.terminal-theme-color-picker-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.terminal-theme-color-picker-checker {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid var(--background-modifier-border);
+  background-color: #d0d0d0;
+  background-image:
+    linear-gradient(45deg, #a0a0a0 25%, transparent 25%),
+    linear-gradient(-45deg, #a0a0a0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #a0a0a0 75%),
+    linear-gradient(-45deg, transparent 75%, #a0a0a0 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
+}
+
+.theme-dark .terminal-theme-color-picker-checker {
+  background-color: #404040;
+  background-image:
+    linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+    linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+    linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
+}
+
+.terminal-theme-color-picker-wrap.terminal-theme-color-picker-unset
+  input[type="color"] {
+  opacity: 0;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.terminal-theme-color-picker-wrap:not(.terminal-theme-color-picker-unset)
+  .terminal-theme-color-picker-checker {
+  display: none;
+}
