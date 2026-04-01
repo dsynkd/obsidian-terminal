@@ -227,10 +227,8 @@ export function loadTerminal(context: TerminalPlugin): void {
     () => "Open terminal",
     {
       checkCallback(checking) {
-        if (
-          checking &&
-          context.settings.value.addNewInstanceBehaviorCommands
-        ) {
+        /* Generic command stays hidden; use per-behavior “Open terminal: …” entries. */
+        if (checking) {
           return false;
         }
         return openDefaultProfileInActiveFileFolder(checking);
@@ -247,12 +245,6 @@ export function loadTerminal(context: TerminalPlugin): void {
         `Open terminal: ${Settings.NEW_INSTANCE_BEHAVIOR_LABELS[behavior]}`,
       {
         checkCallback(checking) {
-          if (
-            checking &&
-            !context.settings.value.addNewInstanceBehaviorCommands
-          ) {
-            return false;
-          }
           return openDefaultProfileInActiveFileFolder(checking, behavior);
         },
         icon: "terminal-square",

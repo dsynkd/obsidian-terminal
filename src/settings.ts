@@ -192,25 +192,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName("Add commands")
-          .setDesc(
-            'Add a command palette entry for each new instance behavior.',
-          )
-          .addToggle(
-            linkSetting(
-              () => settings.value.addNewInstanceBehaviorCommands,
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  settingsM.addNewInstanceBehaviorCommands = value;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
-      .newSetting(containerEl, (setting) => {
-        setting
           .setName("Create instance near existing ones")
           .setDesc(
             "Overrides 'New instance behavior' when instance exists if true.",

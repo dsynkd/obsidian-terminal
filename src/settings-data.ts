@@ -85,7 +85,6 @@ export interface Settings
   readonly terminalOptions: Settings.Profile.TerminalOptions;
 
   readonly newInstanceBehavior: Settings.NewInstanceBehavior;
-  readonly addNewInstanceBehaviorCommands: boolean;
   readonly createInstanceNearExistingOnes: boolean;
   readonly focusOnNewInstance: boolean;
   readonly pinNewInstance: boolean;
@@ -135,7 +134,6 @@ export namespace Settings {
       }),
     ),
     newInstanceBehavior: "newHorizontalSplit",
-    addNewInstanceBehaviorCommands: true,
     pinNewInstance: true,
     openInRootFolder: false,
     preferredRenderer: "webgl",
@@ -1216,12 +1214,6 @@ export namespace Settings {
         unc,
         "newInstanceBehavior",
         NEW_INSTANCE_BEHAVIORS,
-      ),
-      addNewInstanceBehaviorCommands: fixTyped(
-        DEFAULT,
-        unc,
-        "addNewInstanceBehaviorCommands",
-        ["boolean"],
       ),
       pinNewInstance: fixTyped(DEFAULT, unc, "pinNewInstance", ["boolean"]),
       openInRootFolder: fixTyped(DEFAULT, unc, "openInRootFolder", [
