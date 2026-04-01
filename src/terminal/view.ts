@@ -732,22 +732,6 @@ export class TerminalView extends ItemView {
     this.register(() => {
       this.emulator = null;
     });
-
-    // Redirect file opens away from this leaf so Obsidian never replaces the
-    // terminal with a MarkdownView (which crashes in saveHistory/onUnloadFile
-    // because the CodeMirror state lacks the history field during the transition).
-    this.register(
-      around(this.leaf, {
-        openFile(next) {
-          return function redirectOpenFile(
-            ...args: Parameters<typeof next>
-          ): ReturnType<typeof next> {
-            const newLeaf = app.workspace.getLeaf("tab");
-            return next.apply(newLeaf, args);
-          };
-        },
-      }),
-    );
   }
 
   protected startFind(): void {
