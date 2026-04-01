@@ -264,7 +264,7 @@ export class TerminalView extends ItemView {
     leaf: WorkspaceLeaf,
   ) {
     super(leaf);
-    this.navigation = true;
+    this.navigation = false;
   }
 
   protected get isFocused(): boolean {

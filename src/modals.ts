@@ -4,12 +4,10 @@ import {
   PYTHON_REQUIREMENTS,
 } from "./magic.js";
 import {
-  DEFAULT_TERMINAL_OPTIONS,
   PROFILE_PRESETS,
   PROFILE_PRESET_ORDERED_KEYS,
 } from "./terminal/profile-presets.js";
 import {
-  DOMClasses,
   EditDataModal,
   ListModal,
   Platform,
@@ -18,10 +16,8 @@ import {
   UpdatableUI,
   activeSelf,
   anyToError,
-  assignExact,
   clearProperties,
   cloneAsWritable,
-  composeSetters,
   createChildElement,
   createDocumentFragment,
   dynamicRequire,
@@ -32,16 +28,16 @@ import {
   printError,
   randomNotIn,
   setTextToEnum,
-  setTextToNumber,
   unexpected,
   useSettings,
   useSubsettings,
 } from "@polyipseity/obsidian-plugin-library";
-import { Modal, type Setting } from "obsidian";
+import { Modal } from "obsidian";
 import { constant, identity, noop } from "lodash-es";
 import { BUNDLE } from "./import.js";
 import type { DeepWritable } from "ts-essentials";
 import { PROFILE_PROPERTIES } from "./terminal/profile-properties.js";
+import { drawTerminalOptionsForm } from "./terminal-options-ui.js";
 import { Pseudoterminal } from "./terminal/pseudoterminal.js";
 
 import SemVer from "semver/classes/semver.js";
@@ -102,7 +98,7 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
   ) {
     super(context, data, Settings.Profile.fixTerminalOptions, {
       ...options,
-      elements: ["data"],
+      elements: ["export", "import"],
       title: () => "Terminal options",
     });
   }
@@ -112,228 +108,10 @@ export class TerminalOptionsModal extends EditDataModal<Settings.Profile.Termina
     element: HTMLElement,
     errorEl: StatusUI,
   ): void {
-    const {
-        data,
-      } = this,
-      temp = new WeakMap<Setting, string>();
-    ui.new(
-      () => createChildElement(element, "div"),
-      (ele) => {
-        ele.innerHTML = 'See <a aria-label="https://xtermjs.org/docs/api/terminal/interfaces/iterminaloptions/" class="external-link" data-tooltip-position="top" href="https://xtermjs.org/docs/api/terminal/interfaces/iterminaloptions/" rel="noopener" target="_blank"><code>ITerminalOptions</code></a> for all options.';
-      },
-      (ele) => {
-        ele.remove();
-      },
-    )
-      .newSetting(element, (setting) => {
-        setting
-          .setName("Font family")
-          .addText(
-            linkSetting(
-              () => data.fontFamily ?? "",
-              (value) => {
-                data.fontFamily = value;
-              },
-              async () => this.postMutate2(errorEl),
-              {
-                post(component) {
-                  if (data.fontFamily === void 0) {
-                    component.setPlaceholder("(Undefined)");
-                  }
-                },
-              },
-            ),
-          )
-          .addButton((button) =>
-            button
-              .setIcon(
-                "x",
-              )
-              .setTooltip("Undefine")
-              .onClick(async () => {
-                delete data.fontFamily;
-                await this.postMutate2(errorEl);
-              }),
-          );
-      })
-      .newSetting(element, (setting) => {
-        setting
-          .setName("Font size")
-          .addText(
-            linkSetting(
-              () => data.fontSize?.toString() ?? "",
-              composeSetters(
-                (value) => {
-                  if (value) {
-                    return false;
-                  }
-                  delete data.fontSize;
-                  return true;
-                },
-                setTextToNumber((value) => {
-                  data.fontSize = value;
-                }),
-              ),
-              async () => this.postMutate2(errorEl),
-              {
-                post(component) {
-                  component.inputEl.type = "number";
-                  component.setPlaceholder(
-                    "(Undefined)",
-                  );
-                },
-              },
-            ),
-          )
-          .addButton((button) =>
-            button
-              .setIcon(
-                "x",
-              )
-              .setTooltip("Undefine")
-              .onClick(async () => {
-                delete data.fontSize;
-                await this.postMutate2(errorEl);
-              }),
-          );
-      })
-      .newSetting(element, (setting) => {
-        setting
-          .setName("Font weight")
-          .setDesc(
-            temp.has(setting)
-              ? createDocumentFragment(
-                  setting.settingEl.ownerDocument,
-                  (frag) => {
-                    createChildElement(frag, "span", (ele) => {
-                      ele.classList.add(DOMClasses.MOD_WARNING);
-                      ele.textContent = "Invalid";
-                    });
-                  },
-                )
-              : "",
-          )
-          .addText(
-            linkSetting(
-              () => temp.get(setting) ?? data.fontWeight?.toString() ?? "",
-              composeSetters(
-                () => {
-                  temp.delete(setting);
-                  return false;
-                },
-                (value) => {
-                  if (value) {
-                    return false;
-                  }
-                  delete data.fontWeight;
-                  return true;
-                },
-                setTextToNumber((value) => {
-                  data.fontWeight = value;
-                }),
-                setTextToEnum(
-                  Settings.Profile.TerminalOptions.FONT_WEIGHTS,
-                  (value) => {
-                    data.fontWeight = value;
-                  },
-                ),
-                (value) => {
-                  temp.set(setting, value);
-                  return true;
-                },
-              ),
-              async () => this.postMutate2(errorEl),
-              {
-                post(component) {
-                  component.setPlaceholder(
-                    "(Undefined)",
-                  );
-                },
-              },
-            ),
-          )
-          .addButton((button) =>
-            button
-              .setIcon(
-                "x",
-              )
-              .setTooltip("Undefine")
-              .onClick(async () => {
-                delete data.fontWeight;
-                temp.delete(setting);
-                await this.postMutate2(errorEl);
-              }),
-          );
-      })
-      .newSetting(element, (setting) => {
-        setting
-          .setName("Bold font weight")
-          .setDesc(
-            temp.has(setting)
-              ? createDocumentFragment(
-                  setting.settingEl.ownerDocument,
-                  (frag) => {
-                    createChildElement(frag, "span", (ele) => {
-                      ele.classList.add(DOMClasses.MOD_WARNING);
-                      ele.textContent = "Invalid";
-                    });
-                  },
-                )
-              : "",
-          )
-          .addText(
-            linkSetting(
-              () => temp.get(setting) ?? data.fontWeightBold?.toString() ?? "",
-              composeSetters(
-                () => {
-                  temp.delete(setting);
-                  return false;
-                },
-                (value) => {
-                  if (value) {
-                    return false;
-                  }
-                  delete data.fontWeightBold;
-                  return true;
-                },
-                setTextToNumber((value) => {
-                  data.fontWeightBold = value;
-                }),
-                setTextToEnum(
-                  Settings.Profile.TerminalOptions.FONT_WEIGHTS,
-                  (value) => {
-                    data.fontWeightBold = value;
-                  },
-                ),
-                (value) => {
-                  temp.set(setting, value);
-                  return true;
-                },
-              ),
-              async () => this.postMutate2(errorEl),
-              {
-                post(component) {
-                  component.setPlaceholder(
-                    "(Undefined)",
-                  );
-                },
-              },
-            ),
-          )
-          .addButton((button) =>
-            button
-              .setIcon(
-                "x",
-              )
-              .setTooltip("Undefine")
-              .onClick(async () => {
-                delete data.fontWeightBold;
-                temp.delete(setting);
-                await this.postMutate2(errorEl);
-              }),
-          );
-      });
     super.draw(ui, element, errorEl);
+    drawTerminalOptionsForm(ui, element, this.data, () =>
+      this.postMutate2(errorEl),
+    );
   }
 
   protected async postMutate2(errorEl: StatusUI): Promise<void> {
