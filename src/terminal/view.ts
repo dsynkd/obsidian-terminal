@@ -32,7 +32,6 @@ import {
   onResize,
   openExternal,
   printError,
-  printMalformedData,
   randomNotIn,
   readStateCollaboratively,
   saveFileAs,
@@ -105,6 +104,43 @@ const xtermAddonCanvas = dynamicRequire<typeof import("@xterm/addon-canvas")>(
     BUNDLE,
     "@xterm/addon-webgl",
   );
+
+function isPersistedPluginSettings(value: unknown): boolean {
+  if (value === null || typeof value !== "object") {
+    return false;
+  }
+  const o = value as Record<string, unknown>;
+  return (
+    "profiles" in o &&
+    "errorNoticeTimeout" in o &&
+    typeof o.profiles === "object" &&
+    o.profiles !== null
+  );
+}
+
+/**
+ * Workspace state may omit the collaborative wrapper (older saves) or, rarely,
+ * carry plugin settings under the view key. Normalize before {@link TerminalView.State.fix}.
+ */
+function resolveTerminalViewOwnState(
+  namespacedType: string,
+  state: unknown,
+): unknown {
+  const extracted = readStateCollaboratively(namespacedType, state);
+  if (isPersistedPluginSettings(extracted)) {
+    return undefined;
+  }
+  if (extracted !== undefined) {
+    return extracted;
+  }
+  if (state !== null && typeof state === "object") {
+    const raw = state as Record<string, unknown>;
+    if ("profile" in raw && !("profiles" in raw)) {
+      return state;
+    }
+  }
+  return undefined;
+}
 
 export class EditTerminalModal extends DialogModal {
   protected readonly state;
@@ -530,14 +566,11 @@ export class TerminalView extends ItemView {
     result: ViewStateResult,
   ): Promise<void> {
     const { context: plugin } = this,
-      ownState = readStateCollaboratively(
+      ownState = resolveTerminalViewOwnState(
         TerminalView.type.namespaced(plugin),
         state,
       ),
-      { value, valid } = TerminalView.State.fix(ownState);
-    if (!valid) {
-      printMalformedData(plugin, ownState, value);
-    }
+      { value } = TerminalView.State.fix(ownState);
     await super.setState(state, result);
     const { focus } = value;
     value.focus = false;
