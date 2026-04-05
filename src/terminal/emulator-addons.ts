@@ -1,6 +1,5 @@
 import {
   Functions,
-  Platform,
   type PluginContext,
   activeSelf,
   consumeEvent,

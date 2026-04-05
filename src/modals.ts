@@ -68,7 +68,6 @@ const PROFILE_PRESET_NAMES: Record<string, string> = {
   darwinExternalDefault: "macOS default: External",
   darwinIntegratedDefault: "macOS default: Integrated",
   dashIntegrated: "dash: Integrated",
-  developerConsole: "Developer console",
   empty: "Empty",
   gitBashIntegrated: "Git Bash: Integrated",
   gnomeTerminalExternal: "GNOME Terminal: External",
@@ -444,9 +443,6 @@ export class ProfileModal extends Modal {
       });
     switch (profile.type) {
       case "": {
-        break;
-      }
-      case "developerConsole": {
         break;
       }
       case "external":

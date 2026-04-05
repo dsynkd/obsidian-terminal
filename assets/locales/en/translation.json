@@ -4,7 +4,6 @@
     "close-terminal": "$t(generic.close, capitalize) $t(generic.terminal)",
     "find-in-terminal": "$t(generic.find, capitalize) in $t(generic.terminal)",
     "focus-on-last-terminal": "$t(generic.focus, capitalize) on last $t(generic.terminal)",
-    "open-developer-console": "$t(generic.open, capitalize) $t(generic.profile-types.developerConsole)",
     "open-documentation-changelog": "$t(generic.open, capitalize) $t(generic.documentations.changelog)",
     "open-documentation-donate": "$t(generic.open, capitalize) $t(generic.documentations.donate)",
     "open-documentation-readme": "$t(generic.open, capitalize) $t(generic.documentations.readme)",
@@ -189,7 +188,6 @@
     "profile": "$t(generic.profile_one)",
     "profile-types": {
       "": "empty",
-      "developerConsole": "developer console",
       "external": "external",
       "integrated": "integrated",
       "invalid": "$t(generic.invalid)",
@@ -255,7 +253,6 @@
     "darwinExternalDefault": "$t(generic.platforms.darwin) $t(generic.default): $t(generic.profile-types.external, capitalize)",
     "darwinIntegratedDefault": "$t(generic.platforms.darwin) $t(generic.default): $t(generic.profile-types.integrated, capitalize)",
     "dashIntegrated": "dash: $t(generic.profile-types.integrated, capitalize)",
-    "developerConsole": "$t(generic.profile-types.developerConsole, capitalize)",
     "empty": "$t(generic.profile-types., capitalize)",
     "gitBashIntegrated": "Git Bash: $t(generic.profile-types.integrated, capitalize)",
     "gnomeTerminalExternal": "GNOME $t(generic.terminal, capitalize): $t(generic.profile-types.external, capitalize)",
@@ -306,7 +303,6 @@
       "running": "When $t(generic.terminal) is running"
     },
     "instancing": "$t(generic.instance_gerund, capitalize)",
-    "intercept-logging": "Intercept logging",
     "interface": "Interface",
     "macOS-option-key-passthrough": "macOS: Option key passthrough",
     "macOS-option-key-passthrough-description": "Allow Option+key combinations to reach the terminal for typing special characters (e.g., @ on Scandinavian/German keyboards).",

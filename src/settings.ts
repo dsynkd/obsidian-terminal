@@ -343,23 +343,6 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     })
       .newSetting(containerEl, (setting) => {
         setting
-          .setName("Intercept logging")
-          .addToggle(
-            linkSetting(
-              () => settings.value.interceptLogging,
-              async (value) =>
-                settings.mutate((settingsM) => {
-                  settingsM.interceptLogging = value;
-                }),
-              () => {
-                this.postMutate();
-              },
-            ),
-          );
-      })
-      ui
-      .newSetting(containerEl, (setting) => {
-        setting
           .setName("Preferred renderer")
           .addDropdown(
             linkSetting(

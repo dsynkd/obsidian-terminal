@@ -1,8 +1,4 @@
-import {
-  DEFAULT_ENCODING,
-  DEFAULT_SUCCESS_EXIT_CODES,
-  DOMClasses2,
-} from "../magic.js";
+import { DEFAULT_ENCODING, DOMClasses2 } from "../magic.js";
 import {
   DialogModal,
   FindComponent,
@@ -63,7 +59,6 @@ import { mount, unmount } from "svelte";
 import { BUNDLE } from "../import.js";
 import type { DeepWritable } from "ts-essentials";
 import type { LigaturesAddon } from "@xterm/addon-ligatures";
-import { around } from "monkey-around";
 import { ProfileModal } from "../modals.js";
 import type { SearchAddon } from "@xterm/addon-search";
 import { Settings } from "../settings-data.js";

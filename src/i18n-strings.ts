@@ -1,6 +1,5 @@
 export const PROFILE_TYPE_NAMES: Record<string, string> = {
   "": "Empty",
-  developerConsole: "Developer console",
   external: "External",
   integrated: "Integrated",
   invalid: "Invalid",
@@ -21,7 +20,6 @@ export const RENDERER_NAMES: Record<string, string> = {
 
 export const PROFILE_TYPE_ICONS: Record<string, string> = {
   "": "square",
-  developerConsole: "curly-braces",
   external: "terminal-square",
   integrated: "terminal",
   invalid: "x-circle",

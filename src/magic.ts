@@ -11,7 +11,6 @@ export const CHECK_EXECUTABLE_WAIT = 5,
     "SIGINT",
     "SIGTERM",
   ]),
-  MAX_HISTORY = 1024,
   MAX_LOCK_PENDING = Infinity,
   PLUGIN_UNLOAD_DELAY = 10,
   PYTHON_REQUIREMENTS = deepFreeze({

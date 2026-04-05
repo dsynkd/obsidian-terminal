@@ -94,7 +94,6 @@ export interface Settings
   readonly addContextMenu: boolean;
 
   readonly exposeInternalModules: boolean;
-  readonly interceptLogging: boolean;
   readonly macOSOptionKeyPassthrough: boolean;
   /**
    * Chords that forward to Obsidian (same command as in Settings → Hotkeys). Defaults to ⌘P, ⌘O, ⌘N, ⌘G, ⌘,.
@@ -124,7 +123,6 @@ export namespace Settings {
     focusOnNewInstance: true,
     hideStatusBar: "focused",
     addContextMenu: true,
-    interceptLogging: true,
     language: "",
     macOSOptionKeyPassthrough: true,
     obsidianPassThroughHotkeys: DEFAULT_OBSIDIAN_PASS_THROUGH_HOTKEYS.map(
@@ -142,7 +140,6 @@ export namespace Settings {
         [
           "darwinExternalDefault",
           "darwinIntegratedDefault",
-          "developerConsole",
           "linuxExternalDefault",
           "linuxIntegratedDefault",
           "win32ExternalDefault",
@@ -197,7 +194,6 @@ export namespace Settings {
   export type PreferredRendererOption = RendererAddon.RendererOption;
 
   export type Profile =
-    | Profile.DeveloperConsole
     | Profile.Empty
     | Profile.External
     | Profile.Integrated
@@ -208,7 +204,6 @@ export namespace Settings {
     export const TYPES = deepFreeze([
       "",
       "invalid",
-      "developerConsole",
       "external",
       "integrated",
     ]);
@@ -289,9 +284,6 @@ export namespace Settings {
       readonly [_: string]: unknown;
       readonly type: "invalid";
     }
-    export interface DeveloperConsole extends Base {
-      readonly type: "developerConsole";
-    }
     export interface External extends Base {
       readonly type: "external";
       readonly executable: string;
@@ -313,15 +305,6 @@ export namespace Settings {
         Typed<key>;
     } = deepFreeze({
       "": PROFILE_PRESETS.empty,
-      developerConsole: {
-        followTheme: true,
-        name: "",
-        restoreHistory: false,
-        rightClickAction: "copyPaste",
-        successExitCodes: DEFAULT_SUCCESS_EXIT_CODES,
-        terminalOptions: DEFAULT_TERMINAL_OPTIONS,
-        type: "developerConsole",
-      },
       external: {
         args: [],
         executable: "",
@@ -390,35 +373,6 @@ export namespace Settings {
           const type = inSet(TYPES, unc.type) ? unc.type : "invalid";
           switch (type) {
             case "": {
-              return {
-                followTheme: fixTyped(DEFAULTS[type], unc, "followTheme", [
-                  "boolean",
-                ]),
-                name: fixTyped(DEFAULTS[type], unc, "name", ["string"]),
-                restoreHistory: fixTyped(
-                  DEFAULTS[type],
-                  unc,
-                  "restoreHistory",
-                  ["boolean"],
-                ),
-                rightClickAction: fixInSet(
-                  DEFAULTS[type],
-                  unc,
-                  "rightClickAction",
-                  RightClickActionAddon.ACTIONS,
-                ),
-                successExitCodes: fixArray(
-                  DEFAULTS[type],
-                  unc,
-                  "successExitCodes",
-                  ["string"],
-                ),
-                terminalOptions: fixTerminalOptions(unc["terminalOptions"])
-                  .value,
-                type,
-              } satisfies Typed<typeof type>;
-            }
-            case "developerConsole": {
               return {
                 followTheme: fixTyped(DEFAULTS[type], unc, "followTheme", [
                   "boolean",
@@ -1198,7 +1152,6 @@ export namespace Settings {
         HIDE_STATUS_BAR_OPTIONS,
       ),
       addContextMenu: fixTyped(DEFAULT, unc, "addContextMenu", ["boolean"]),
-      interceptLogging: fixTyped(DEFAULT, unc, "interceptLogging", ["boolean"]),
       language: fixInSet(DEFAULT, unc, "language", DEFAULTABLE_LANGUAGES),
       macOSOptionKeyPassthrough: fixTyped(
         DEFAULT,

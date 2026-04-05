@@ -51,7 +51,6 @@ export const DEFAULT_LINK_HANDLER: ILinkHandler = deepFreeze({
 
 export interface ProfilePresets0 {
   readonly empty: Settings.Profile.Empty;
-  readonly developerConsole: Settings.Profile.DeveloperConsole;
 
   readonly cmdExternal: Settings.Profile.External;
   readonly gnomeTerminalExternal: Settings.Profile.External;
@@ -141,15 +140,6 @@ const PROFILE_PRESETS0 = deepFreeze({
     terminalOptions: DEFAULT_TERMINAL_OPTIONS,
     type: "integrated",
     useWin32Conhost: true,
-  },
-  developerConsole: {
-    followTheme: true,
-    name: "",
-    restoreHistory: false,
-    rightClickAction: "copyPaste",
-    successExitCodes: DEFAULT_SUCCESS_EXIT_CODES,
-    terminalOptions: DEFAULT_TERMINAL_OPTIONS,
-    type: "developerConsole",
   },
   empty: {
     followTheme: true,
@@ -371,7 +361,6 @@ export const PROFILE_PRESETS = deepFreeze({
 }) satisfies ProfilePresets;
 export type ProfilePresetKeys = readonly [
   "empty",
-  "developerConsole",
 
   "cmdExternal",
   "gnomeTerminalExternal",

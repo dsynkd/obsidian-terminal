@@ -1,5 +1,5 @@
 import { type App, Plugin, type PluginManifest } from "obsidian";
-import { EarlyPatchManager, loadPatch } from "./patch.js";
+import { loadPatch } from "./patch.js";
 import {
   LanguageManager,
   type PluginContext,
@@ -12,8 +12,7 @@ import {
   semVerString,
 } from "@polyipseity/obsidian-plugin-library";
 import { LocalSettings, Settings } from "./settings-data.js";
-import { MAX_HISTORY, PLUGIN_UNLOAD_DELAY } from "./magic.js";
-import { DeveloperConsolePseudoterminal } from "./terminal/pseudoterminal.js";
+import { PLUGIN_UNLOAD_DELAY } from "./magic.js";
 import { PluginLocales } from "../assets/locales.js";
 import { loadIcons } from "./icons.js";
 import { loadSettings } from "./settings.js";
@@ -27,17 +26,10 @@ export class TerminalPlugin
   public readonly language: LanguageManager;
   public readonly localSettings: StorageSettingsManager<LocalSettings>;
   public readonly settings: SettingsManager<Settings>;
-  public readonly developerConsolePTY =
-    new DeveloperConsolePseudoterminal.Manager(this);
-
-  public readonly earlyPatch;
   public readonly statusBarHider = new StatusBarHider(this);
 
   public constructor(app: App, manifest: PluginManifest) {
-    const earlyPatch = new EarlyPatchManager(app, { maxHistory: MAX_HISTORY });
-    earlyPatch.load();
     super(app, manifest);
-    this.earlyPatch = earlyPatch;
     try {
       this.version = semVerString(manifest.version);
     } catch (error) {
@@ -55,7 +47,7 @@ export class TerminalPlugin
     this.settings = new SettingsManager(this, Settings.fix);
   }
 
-  public displayName(_unlocalized = false): string {
+  public displayName(): string {
     return "Terminal";
   }
 
@@ -63,17 +55,9 @@ export class TerminalPlugin
     (async (): Promise<void> => {
       try {
         await this.loadData();
-        const {
-            developerConsolePTY,
-            earlyPatch,
-            language,
-            localSettings,
-            statusBarHider,
-            settings,
-          } = this,
-          earlyChildren = [earlyPatch, language, localSettings, settings],
-          // Placeholder to resolve merge conflicts more easily
-          children = [developerConsolePTY, statusBarHider];
+        const { language, localSettings, settings, statusBarHider } = this,
+          earlyChildren = [language, localSettings, settings],
+          children = [statusBarHider];
         for (const child of earlyChildren) {
           child.unload();
         }
@@ -94,17 +78,6 @@ export class TerminalPlugin
           this.addChild(child);
         }
         await Promise.all([
-          Promise.resolve().then(() => {
-            settings.onMutate(
-              (settings0) => settings0.interceptLogging,
-              (cur) => {
-                this.earlyPatch.value.enableLoggingPatch(cur);
-              },
-            );
-            this.earlyPatch.value.enableLoggingPatch(
-              settings.value.interceptLogging,
-            );
-          }),
           Promise.resolve().then(() => {
             loadPatch(this);
           }),

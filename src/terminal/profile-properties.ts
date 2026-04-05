@@ -41,14 +41,6 @@ export const PROFILE_PROPERTIES: {
     },
     valid: true,
   },
-  developerConsole: {
-    available: true,
-    integratable: true,
-    async opener(context: TerminalPlugin) {
-      return (await context.developerConsolePTY.onLoaded)().dup();
-    },
-    valid: true,
-  },
   external: {
     available: SUPPORTS_EXTERNAL_TERMINAL_EMULATOR,
     integratable: false,
