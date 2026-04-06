@@ -76,3 +76,80 @@
   .terminal-theme-color-picker-checker {
   display: none;
 }
+
+/*
+ * Tab chrome copied from platers/obsidian-linter (src/styles.css → .linter-setting-header …).
+ * Scoped under .terminal-setting-tabs-root so we match Linter visually but never override
+ * another plugin's settings DOM (including Linter’s own tab strip).
+ */
+.terminal-setting-tabs-root .linter-setting-header {
+  margin-bottom: 24px;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+.terminal-setting-tabs-root .linter-setting-header .linter-setting-tab-group {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.terminal-setting-tabs-root .linter-setting-tab-group {
+  margin-top: 6px;
+  padding-left: 2px;
+  padding-right: 2px;
+  border-bottom: 2px solid var(--background-modifier-border);
+}
+
+.terminal-setting-tabs-root .linter-setting-header .linter-tab-settings {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px 12px;
+  font: inherit;
+  font-weight: 600;
+  line-height: normal;
+  color: inherit;
+  background: transparent;
+  /* Same box model as .linter-tab-settings-active so selection does not shift layout */
+  border: 2px solid transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.terminal-setting-tabs-root .linter-setting-header .linter-tab-settings:first-child {
+  margin-left: 6px;
+}
+
+.terminal-setting-tabs-root
+  .linter-setting-header
+  .linter-tab-settings:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+.terminal-setting-tabs-root
+  .linter-setting-header
+  .linter-tab-settings.linter-tab-settings-active {
+  border-bottom-color: var(--background-primary);
+  border-left-color: var(--background-modifier-border);
+  border-top-color: var(--background-modifier-border);
+  border-right-color: var(--background-modifier-border);
+}
+
+.terminal-setting-tabs-root .terminal-setting-tab-panels {
+  min-width: 0;
+}
+
+.terminal-setting-tabs-root .terminal-setting-tab-panel--hidden {
+  display: none !important;
+}
+
+.terminal-setting-tabs-root .terminal-setting-tab-panel > h2 {
+  margin-top: var(--size-4-2);
+  margin-bottom: var(--size-4-3);
+}

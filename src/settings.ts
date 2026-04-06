@@ -1,13 +1,15 @@
 import {
   AdvancedSettingTab,
   Platform,
+  clearProperties,
+  cloneAsWritable,
   createChildElement,
   createDocumentFragment,
   linkSetting,
   setTextToEnum,
 } from "@polyipseity/obsidian-plugin-library";
 import { Modal, Setting, type App, type Hotkey } from "obsidian";
-import { ProfileListModal, TerminalOptionsModal } from "./modals.js";
+import { ProfileListModal } from "./modals.js";
 import { Settings } from "./settings-data.js";
 import { RENDERER_NAMES, formatProfileShort, listDescription } from "./i18n-strings.js";
 import type { TerminalPlugin } from "./main.js";
@@ -17,8 +19,26 @@ import {
   keyboardEventToHotkey,
 } from "./terminal/obsidian-pass-through.js";
 import { size } from "lodash-es";
+import { drawTerminalOptionsForm } from "./terminal-options-ui.js";
+
+const SETTING_TAB_IDS = [
+  "general",
+  "profiles",
+  "terminal",
+  "advanced",
+] as const;
+type SettingTabId = (typeof SETTING_TAB_IDS)[number];
+
+const SETTING_TAB_LABELS: Record<SettingTabId, string> = {
+  profiles: "Profiles",
+  terminal: "Terminal",
+  general: "General",
+  advanced: "Advanced",
+};
 
 export class SettingTab extends AdvancedSettingTab<Settings> {
+  #activeSettingTab: SettingTabId = "profiles";
+
   public constructor(protected override readonly context: TerminalPlugin) {
     super(context);
   }
@@ -32,7 +52,81 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       ui,
     } = this;
 
+    const tabsRoot = createChildElement(containerEl, "div", (el) => {
+      el.classList.add("terminal-setting-tabs-root");
+    });
+    const tabHeader = createChildElement(tabsRoot, "nav", (el) => {
+      el.classList.add("linter-setting-header");
+      el.setAttribute("aria-label", "Settings sections");
+      el.setAttribute("role", "tablist");
+    });
+    const tabGroup = createChildElement(tabHeader, "div", (el) => {
+      el.classList.add("linter-setting-tab-group");
+    });
+    const tabPanels = createChildElement(tabsRoot, "div", (el) => {
+      el.classList.add("terminal-setting-tab-panels");
+    });
+    const panels: Record<SettingTabId, HTMLDivElement> = {
+      general: createChildElement(tabPanels, "div", (el) => {
+        el.classList.add("terminal-setting-tab-panel");
+        el.dataset.tab = "general";
+      }),
+      profiles: createChildElement(tabPanels, "div", (el) => {
+        el.classList.add("terminal-setting-tab-panel");
+        el.dataset.tab = "profiles";
+      }),
+      terminal: createChildElement(tabPanels, "div", (el) => {
+        el.classList.add("terminal-setting-tab-panel");
+        el.dataset.tab = "terminalOptions";
+      }),
+      advanced: createChildElement(tabPanels, "div", (el) => {
+        el.classList.add("terminal-setting-tab-panel");
+        el.dataset.tab = "advanced";
+      }),
+    };
+
+    const doc = containerEl.ownerDocument;
+    const tabButtons: Record<SettingTabId, HTMLButtonElement> = {
+      profiles: doc.createElement("button"),
+      terminal: doc.createElement("button"),
+      general: doc.createElement("button"),
+      advanced: doc.createElement("button"),
+    };
+
+    const setActiveSettingTab = (id: SettingTabId): void => {
+      this.#activeSettingTab = id;
+      for (const tabId of SETTING_TAB_IDS) {
+        const active = tabId === id;
+        panels[tabId].classList.toggle(
+          "terminal-setting-tab-panel--hidden",
+          !active,
+        );
+        const btn = tabButtons[tabId];
+        btn.classList.toggle("linter-tab-settings-active", active);
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+      }
+    };
+
+    for (const tabId of SETTING_TAB_IDS) {
+      const btn = tabButtons[tabId];
+      btn.type = "button";
+      btn.textContent = SETTING_TAB_LABELS[tabId];
+      btn.classList.add("linter-tab-settings");
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-controls", `terminal-setting-tab-${tabId}`);
+      btn.addEventListener("click", () => {
+        setActiveSettingTab(tabId);
+      });
+      tabGroup.appendChild(btn);
+      panels[tabId].id = `terminal-setting-tab-${tabId}`;
+      panels[tabId].setAttribute("role", "tabpanel");
+      panels[tabId].setAttribute("aria-labelledby", `terminal-setting-tab-btn-${tabId}`);
+      btn.id = `terminal-setting-tab-btn-${tabId}`;
+    }
+    setActiveSettingTab(this.#activeSettingTab);
+
     const passThroughRowRoots: HTMLElement[] = [];
+    let passThroughInsertAfter: HTMLElement | null = null;
     const refreshPassThroughList = (): void => {
       for (const el of passThroughRowRoots) {
         el.remove();
@@ -40,9 +134,14 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       passThroughRowRoots.length = 0;
 
       const hotkeys = settings.value.obsidianPassThroughHotkeys;
-      const gridEl = createChildElement(containerEl, "div", (el) => {
+      const parentEl =
+        passThroughInsertAfter?.parentElement ?? panels.advanced;
+      const gridEl = createChildElement(parentEl, "div", (el) => {
         el.classList.add("terminal-pass-through-hotkey-grid");
       });
+      if (passThroughInsertAfter) {
+        passThroughInsertAfter.insertAdjacentElement("afterend", gridEl);
+      }
       passThroughRowRoots.push(gridEl);
 
       if (hotkeys.length === 0) {
@@ -70,7 +169,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       });
     };
 
-    ui.newSetting(containerEl, (setting) => {
+    ui.newSetting(panels.profiles, (setting) => {
       setting
         .setName("Profiles")
         .setDesc(listDescription(size(settings.value.profiles)))
@@ -91,11 +190,12 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                   },
                   description: (): string =>
                     "The first compatible profile in the list is the default for its terminal type.",
+                  title: (): string => "",
                 },
               ).open();
             }),
         );
-    }).newSetting(containerEl, (setting) => {
+    }).newSetting(panels.profiles, (setting) => {
       setting
         .setName("Default profile")
         .setDesc("Profile to open when clicking the ribbon icon. Leave empty to show profile selector.")
@@ -135,33 +235,21 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     });
-    ui.newSetting(containerEl, (setting) => {
-      setting
-        .setName("Terminal options")
-        .setDesc("Shallow-merged into every profile unless a specific profile explicitly overrides them.")
-        .addButton((button) =>
-          button
-            .setIcon("edit")
-            .setTooltip("Edit")
-            .onClick(() => {
-              new TerminalOptionsModal(
-                context,
-                settings.value.terminalOptions,
-                {
-                  callback: async (value): Promise<void> => {
-                    await settings.mutate((settingsM) => {
-                      settingsM.terminalOptions = value;
-                    });
-                    this.postMutate();
-                  },
-                },
-              ).open();
-            }),
-        );
-    });
 
-    this.newSectionWidget(() => "Instancing");
-    ui.newSetting(containerEl, (setting) => {
+
+    const terminalOpts = cloneAsWritable(settings.value.terminalOptions);
+    const persistTerminalOptions = async (): Promise<void> => {
+      const fixed = Settings.Profile.fixTerminalOptions(terminalOpts).value;
+      await settings.mutate((settingsM) => {
+        settingsM.terminalOptions = fixed;
+      });
+      clearProperties(terminalOpts);
+      Object.assign(terminalOpts, cloneAsWritable(fixed));
+      this.postMutate();
+    };
+    drawTerminalOptionsForm(ui, panels.terminal, terminalOpts, persistTerminalOptions);
+
+    ui.newSetting(panels.general, (setting) => {
       setting
         .setName("New instance behavior")
         .addDropdown(
@@ -190,7 +278,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.general, (setting) => {
         setting
           .setName("Create instance near existing ones")
           .setDesc(
@@ -209,7 +297,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.general, (setting) => {
         setting
           .setName("Focus on new instance")
           .addToggle(
@@ -225,7 +313,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.general, (setting) => {
         setting
           .setName("Pin new instance")
           .addToggle(
@@ -241,7 +329,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.general, (setting) => {
         setting
           .setName("Open in root folder")
           .setDesc(
@@ -267,8 +355,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       never: "Never",
       running: "When terminal is running",
     };
-    this.newSectionWidget(() => "Interface");
-    ui.newSetting(containerEl, (setting) => {
+    ui.newSetting(panels.general, (setting) => {
       setting
         .setName("Hide status bar")
         .addDropdown(
@@ -297,7 +384,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.general, (setting) => {
         setting
           .setName("Add context menu")
           .setDesc(
@@ -316,8 +403,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       });
-    this.newSectionWidget(() => "Advanced");
-    ui.newSetting(containerEl, (setting) => {
+    ui.newSetting(panels.advanced, (setting) => {
       const { settingEl } = setting;
       setting
         .setName("Expose internal modules")
@@ -341,7 +427,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.advanced, (setting) => {
         setting
           .setName("Preferred renderer")
           .addDropdown(
@@ -372,7 +458,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.advanced, (setting) => {
         setting
           .setName("macOS: Option key passthrough")
           .setDesc("Allow Option+key combinations to reach the terminal for typing special characters (e.g., @ on Scandinavian/German keyboards).")
@@ -389,7 +475,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
-      .newSetting(containerEl, (setting) => {
+      .newSetting(panels.advanced, (setting) => {
         setting
           .setName("Hotkey pass-through")
           .setDesc(
@@ -423,6 +509,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
                 modal.open();
               }),
           );
+        passThroughInsertAfter = setting.settingEl;
         refreshPassThroughList();
       });
   }
