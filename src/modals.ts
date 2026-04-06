@@ -26,9 +26,7 @@ import {
   linkSetting,
   notice2,
   printError,
-  randomNotIn,
   setTextToEnum,
-  unexpected,
   useSettings,
   useSubsettings,
 } from "@polyipseity/obsidian-plugin-library";
@@ -61,7 +59,7 @@ const childProcess = dynamicRequire<typeof import("node:child_process")>(
     return util2.promisify(childProcess2.execFile);
   })();
 
-const PROFILE_PRESET_NAMES: Record<string, string> = {
+export const PROFILE_PRESET_NAMES: Record<string, string> = {
   bashIntegrated: "bash: Integrated",
   cmdExternal: "cmd: External",
   cmdIntegrated: "cmd: Integrated",
@@ -673,107 +671,5 @@ export class ProfileModal extends Modal {
       }
       // No default
     }
-  }
-}
-
-export class ProfileListModal extends ListModal<
-  DeepWritable<Settings.Profile>
-> {
-  protected readonly dataKeys;
-
-  public constructor(
-    context: TerminalPlugin,
-    data: readonly Settings.Profile.Entry[],
-    options?: ProfileListModal.Options,
-  ) {
-    const dataW = cloneAsWritable(data),
-      dataKeys = new Map(dataW.map(([key, value]) => [value, key])),
-      callback = options?.callback ?? ((): void => {}),
-      keygen = options?.keygen ?? ((): string => self.crypto.randomUUID());
-    super(
-      context,
-      (setting, editable, getter, setter) => {
-        setting.addButton((button) =>
-          button
-            .setIcon("edit")
-            .setTooltip("Edit")
-            .onClick(() => {
-              new ProfileModal(context, getter(), async (value) => {
-                await setter((item) => {
-                  clearProperties(item);
-                  Object.assign(item, value);
-                });
-              }).open();
-            })
-            .setDisabled(!editable),
-        );
-      },
-      unexpected,
-      dataW.map(([, value]) => value),
-      {
-        ...options,
-        ...({
-          async callback(data0): Promise<void> {
-            await callback(
-              data0.map((profile) => {
-                let id = dataKeys.get(profile);
-                if (id === void 0) {
-                  dataKeys.set(
-                    profile,
-                    (id = randomNotIn([...dataKeys.values()], keygen)),
-                  );
-                }
-                return [id, cloneAsWritable(profile)];
-              }),
-            );
-          },
-        } satisfies ProfileListModal.PredefinedOptions),
-        descriptor:
-          options?.descriptor ??
-          ((profile): string => {
-            const id = dataKeys.get(profile) ?? "",
-              info = Settings.Profile.info([id, profile]);
-            return Settings.Profile.isCompatible(profile, Platform.CURRENT)
-              ? info.id
-              : "(Incompatible) " + info.id;
-          }),
-        namer:
-          options?.namer ??
-          ((profile): string => {
-            const id = dataKeys.get(profile) ?? "";
-            return Settings.Profile.info([id, profile]).name;
-          }),
-        presetPlaceholder:
-          options?.presetPlaceholder ??
-          ((): string => "(Unselected)"),
-        presets:
-          options?.presets ??
-          PROFILE_PRESET_ORDERED_KEYS.map((key) => ({
-            name: PROFILE_PRESET_NAMES[key] ?? key,
-            get value(): DeepWritable<Settings.Profile> {
-              return cloneAsWritable(PROFILE_PRESETS[key]);
-            },
-          })),
-        title:
-          options?.title ??
-          ((): string => "Profiles"),
-      },
-    );
-    this.dataKeys = dataKeys;
-  }
-}
-export namespace ProfileListModal {
-  type InitialOptions = ListModal.Options<DeepWritable<Settings.Profile>>;
-  export type PredefinedOptions = {
-    readonly [K in "callback"]: InitialOptions[K];
-  };
-  export interface Options extends Omit<
-    InitialOptions,
-    keyof PredefinedOptions
-  > {
-    readonly callback?: (
-      data: DeepWritable<Settings.Profile.Entry>[],
-    ) => unknown;
-    readonly keygen?: () => string;
   }
 }

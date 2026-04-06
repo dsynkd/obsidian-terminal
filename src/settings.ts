@@ -1,15 +1,20 @@
 import {
   AdvancedSettingTab,
   Platform,
+  bracket,
   clearProperties,
   cloneAsWritable,
   createChildElement,
   createDocumentFragment,
   linkSetting,
+  randomNotIn,
+  removeAt,
   setTextToEnum,
+  swap,
+  UpdatableUI,
 } from "@polyipseity/obsidian-plugin-library";
 import { Modal, Setting, type App, type Hotkey } from "obsidian";
-import { ProfileListModal } from "./modals.js";
+import { ProfileModal } from "./modals.js";
 import { Settings } from "./settings-data.js";
 import { RENDERER_NAMES, formatProfileShort, listDescription } from "./i18n-strings.js";
 import type { TerminalPlugin } from "./main.js";
@@ -19,6 +24,7 @@ import {
   keyboardEventToHotkey,
 } from "./terminal/obsidian-pass-through.js";
 import { size } from "lodash-es";
+import { PROFILE_PRESETS } from "./terminal/profile-presets.js";
 import { drawTerminalOptionsForm } from "./terminal-options-ui.js";
 
 const SETTING_TAB_IDS = [
@@ -169,33 +175,9 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       });
     };
 
+    let appendNewProfile: () => Promise<void> = async () => {};
+
     ui.newSetting(panels.profiles, (setting) => {
-      setting
-        .setName("Profiles")
-        .setDesc(listDescription(size(settings.value.profiles)))
-        .addButton((button) =>
-          button
-            .setIcon("list")
-            .setTooltip("Edit")
-            .onClick(() => {
-              new ProfileListModal(
-                context,
-                Object.entries(settings.value.profiles),
-                {
-                  callback: async (data): Promise<void> => {
-                    await settings.mutate((settingsM) => {
-                      settingsM.profiles = Object.fromEntries(data);
-                    });
-                    this.postMutate();
-                  },
-                  description: (): string =>
-                    "The first compatible profile in the list is the default for its terminal type.",
-                  title: (): string => "",
-                },
-              ).open();
-            }),
-        );
-    }).newSetting(panels.profiles, (setting) => {
       setting
         .setName("Default profile")
         .setDesc("Profile to open when clicking the ribbon icon. Leave empty to show profile selector.")
@@ -235,7 +217,25 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
           ),
         );
     });
-
+    ui.newSetting(panels.profiles, (setting) => {
+      setting
+        .setName("Profiles")
+        .setHeading()
+        .addButton((button) =>
+          button
+            .setIcon("plus")
+            .setTooltip("Add profile")
+            .setCta()
+            .onClick(() => {
+              void appendNewProfile();
+            }),
+        );
+    });
+    appendNewProfile = this.#setupProfileListSection(
+      ui,
+      panels.profiles,
+      Object.entries(settings.value.profiles),
+    ).appendNewProfile;
 
     const terminalOpts = cloneAsWritable(settings.value.terminalOptions);
     const persistTerminalOptions = async (): Promise<void> => {
@@ -403,31 +403,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       });
-    ui.newSetting(panels.advanced, (setting) => {
-      const { settingEl } = setting;
-      setting
-        .setName("Expose internal modules")
-        .setDesc(
-          createDocumentFragment(settingEl.ownerDocument, (frag) => {
-            createChildElement(frag, "span", (ele) => {
-              ele.innerHTML = '<code>obsidian</code>, <code>@codemirror/*</code>, <code>@lezer/*</code>\u2026';
-            });
-          }),
-        )
-        .addToggle(
-          linkSetting(
-            () => settings.value.exposeInternalModules,
-            async (value) =>
-              settings.mutate((settingsM) => {
-                settingsM.exposeInternalModules = value;
-              }),
-            () => {
-              this.postMutate();
-            },
-          ),
-        );
-    })
-      .newSetting(panels.advanced, (setting) => {
+     ui.newSetting(panels.advanced, (setting) => {
         setting
           .setName("Preferred renderer")
           .addDropdown(
@@ -458,9 +434,33 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
             ),
           );
       })
+    .newSetting(panels.advanced, (setting) => {
+      const { settingEl } = setting;
+      setting
+        .setName("Expose internal modules")
+        .setDesc(
+          createDocumentFragment(settingEl.ownerDocument, (frag) => {
+            createChildElement(frag, "span", (ele) => {
+              ele.innerHTML = '<code>obsidian</code>, <code>@codemirror/*</code>, <code>@lezer/*</code>\u2026';
+            });
+          }),
+        )
+        .addToggle(
+          linkSetting(
+            () => settings.value.exposeInternalModules,
+            async (value) =>
+              settings.mutate((settingsM) => {
+                settingsM.exposeInternalModules = value;
+              }),
+            () => {
+              this.postMutate();
+            },
+          ),
+        );
+    })
       .newSetting(panels.advanced, (setting) => {
         setting
-          .setName("macOS: Option key passthrough")
+          .setName("Option key passthrough (macOS)")
           .setDesc("Allow Option+key combinations to reach the terminal for typing special characters (e.g., @ on Scandinavian/German keyboards).")
           .addToggle(
             linkSetting(
@@ -477,7 +477,7 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
       })
       .newSetting(panels.advanced, (setting) => {
         setting
-          .setName("Hotkey pass-through")
+          .setName("Hotkey passthrough")
           .setDesc(
             "Allow key combinations to pass through to Obsidian as hotkeys.",
           )
@@ -518,6 +518,139 @@ export class SettingTab extends AdvancedSettingTab<Settings> {
     return Settings.persistent(
       this.context.settings.value,
     ) as Partial<Settings>;
+  }
+
+  #setupProfileListSection(
+    ui: UpdatableUI,
+    parentEl: HTMLElement,
+    initialEntries: readonly Settings.Profile.Entry[],
+  ): { readonly appendNewProfile: () => Promise<void> } {
+    const { context, context: { settings } } = this;
+    const dataW = cloneAsWritable(initialEntries);
+    const dataKeys = new Map(
+      dataW.map(([key, value]: Settings.Profile.Entry) => [value, key]),
+    );
+    const profiles = dataW.map(([, value]) => value);
+    const keygen = (): string => self.crypto.randomUUID();
+    const { value: i18n } = context.language;
+
+    let setupListSubUI: () => void = () => {};
+
+    const persist = async (): Promise<void> => {
+      const entries = profiles.map((profile) => {
+        let id = dataKeys.get(profile);
+        if (id === void 0) {
+          dataKeys.set(
+            profile,
+            (id = randomNotIn([...dataKeys.values()], keygen)),
+          );
+        }
+        return [id, cloneAsWritable(profile)] as const;
+      });
+      await settings.mutate((settingsM) => {
+        settingsM.profiles = Object.fromEntries(entries);
+      });
+      this.postMutate();
+      ui.update();
+    };
+
+    const appendNewProfile = async (): Promise<void> => {
+      profiles.push(cloneAsWritable(PROFILE_PRESETS.empty));
+      setupListSubUI();
+      await persist();
+    };
+
+    const setupProfileRows = (
+      subUI: UpdatableUI,
+      element: HTMLElement,
+    ): void => {
+      subUI.destroy();
+      const descriptor = (profile: Settings.Profile): string => {
+        const id = dataKeys.get(profile) ?? "";
+        const info = Settings.Profile.info([id, profile]);
+        return Settings.Profile.isCompatible(profile, Platform.CURRENT)
+          ? info.id
+          : "(Incompatible) " + info.id;
+      };
+      const namer = (profile: Settings.Profile): string => {
+        const id = dataKeys.get(profile) ?? "";
+        return Settings.Profile.info([id, profile]).name;
+      };
+      for (const [index] of profiles.entries()) {
+        subUI.newSetting(element, (setting) => {
+          const { valid, value: item } = bracket(profiles, index);
+          if (!valid) {
+            throw new Error(String(index));
+          }
+          setting.setName(namer(item)).setDesc(descriptor(item));
+          setting.addButton((button) =>
+            button
+              .setIcon("edit")
+              .setTooltip("Edit")
+              .onClick(() => {
+                new ProfileModal(context, item, async (value) => {
+                  clearProperties(item);
+                  Object.assign(item, value);
+                  await persist();
+                }).open();
+              }),
+          );
+          setting.addButton((button) =>
+            button
+              .setTooltip(i18n.t("components.list.remove"))
+              .setIcon(i18n.t("asset:components.list.remove-icon"))
+              .onClick(async () => {
+                removeAt(profiles, index);
+                setupListSubUI();
+                await persist();
+              }),
+          );
+          setting.addExtraButton((button) =>
+            button
+              .setTooltip(i18n.t("components.list.move-up"))
+              .setIcon(i18n.t("asset:components.list.move-up-icon"))
+              .onClick(async () => {
+                if (index <= 0) {
+                  return;
+                }
+                swap(profiles, index - 1, index);
+                setupListSubUI();
+                await persist();
+              }),
+          );
+          setting.addExtraButton((button) =>
+            button
+              .setTooltip(i18n.t("components.list.move-down"))
+              .setIcon(i18n.t("asset:components.list.move-down-icon"))
+              .onClick(async () => {
+                if (index >= profiles.length - 1) {
+                  return;
+                }
+                swap(profiles, index, index + 1);
+                setupListSubUI();
+                await persist();
+              }),
+          );
+        });
+      }
+    };
+
+    ui.embed(
+      () => {
+        const subUI = new UpdatableUI();
+        setupListSubUI = (): void => {
+          setupProfileRows(subUI, parentEl);
+        };
+        setupListSubUI();
+        return subUI;
+      },
+      null,
+      (subUI) => {
+        subUI.destroy();
+      },
+    );
+
+    return { appendNewProfile };
   }
 }
 
